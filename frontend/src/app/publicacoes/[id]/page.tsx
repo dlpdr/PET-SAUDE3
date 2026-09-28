@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, User, Share2, Download, Tag, Heart, MessageCircle, Send, Loader2, AlertCircle } from "lucide-react";
+import { ArrowLeft, Calendar, User, Share2, Download, Tag, Heart, MessageCircle, Send, Loader2, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -18,17 +18,7 @@ export default function PublicacaoDetalhe() {
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [newComment, setNewComment] = useState("");
-
-  const [comentarios, setComentarios] = useState<any[]>([]);
-
-  const fetchComments = async () => {
-    try {
-      const res = await api.get(`/publications/${id}/comments/`);
-      setComentarios(res.data);
-    } catch (err) {
-      console.error("Erro ao buscar comentários", err);
-    }
-  };
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -48,10 +38,7 @@ export default function PublicacaoDetalhe() {
         setIsLoading(false);
       }
     };
-    if (id) {
-      fetchPost();
-      fetchComments();
-    }
+    if (id) fetchPost();
   }, [id]);
 
   const handleLike = async () => {
@@ -82,25 +69,11 @@ export default function PublicacaoDetalhe() {
     }
   };
 
-  const handleCommentSubmit = async (e: React.FormEvent) => {
+  const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
-
-    const token = document.cookie.includes('access_token');
-    if (!token) {
-      alert("Você precisa fazer login para comentar.");
-      return;
-    }
-
-    try {
-      await api.post(`/publications/${id}/comments/`, { texto: newComment });
-      setNewComment("");
-      fetchComments(); // Recarrega a lista de comentários
-      setPost((prev: any) => ({ ...prev, comments_count: prev.comments_count + 1 }));
-    } catch (error) {
-      console.error("Erro ao enviar comentário:", error);
-      alert("Erro ao enviar comentário.");
-    }
+    alert("Comentário enviado! (Simulação da integração na Fase 4)");
+    setNewComment("");
   };
 
   const getDefaultImage = (categoria: string) => {
@@ -132,19 +105,57 @@ export default function PublicacaoDetalhe() {
     );
   }
 
-  const imageUrl = getMediaUrl(post.imagens?.[0]?.imagem) || getDefaultImage(post.categoria);
+  const imagensArray = post.imagens && post.imagens.length > 0 
+    ? post.imagens.map((i: any) => getMediaUrl(i.imagem))
+    : [getDefaultImage(post.categoria)];
+
   const autorNome = post.autor ? `${post.autor.first_name} ${post.autor.last_name}` : "Autor desconhecido";
 
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev === imagensArray.length - 1 ? 0 : prev + 1));
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev === 0 ? imagensArray.length - 1 : prev - 1));
+  };
 
   return (
     <div className="flex flex-col items-center w-full min-h-screen bg-white">
       
-      <section className="w-full relative h-[40vh] min-h-[300px] flex items-end justify-center">
+      <section className="w-full relative h-[40vh] min-h-[300px] flex items-end justify-center group overflow-hidden">
         <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${imageUrl})` }}
+          className="absolute inset-0 bg-cover bg-center transition-all duration-500 ease-in-out"
+          style={{ backgroundImage: `url(${imagensArray[currentImageIndex]})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
+        
+        {imagensArray.length > 1 && (
+          <>
+            <button 
+              onClick={prevImage}
+              className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/30 hover:bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all z-20 backdrop-blur-sm"
+            >
+              <ChevronLeft size={24} />
+            </button>
+            <button 
+              onClick={nextImage}
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/30 hover:bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all z-20 backdrop-blur-sm"
+            >
+              <ChevronRight size={24} />
+            </button>
+            
+            {/* Dots */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+              {imagensArray.map((_: any, idx: number) => (
+                <button 
+                  key={idx}
+                  onClick={() => setCurrentImageIndex(idx)}
+                  className={`w-2 h-2 rounded-full transition-all ${idx === currentImageIndex ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80'}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
         
         <div className="w-full max-w-4xl mx-auto px-6 relative z-10 pb-12">
           <Link href="/publicacoes" className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors mb-6 text-sm font-medium">
@@ -229,23 +240,20 @@ export default function PublicacaoDetalhe() {
 
             {/* Lista de Comentários */}
             <div className="flex flex-col gap-6">
-              {comentarios.length > 0 ? comentarios.map((comment: any) => {
-                const commentAutor = comment.autor ? `${comment.autor.first_name} ${comment.autor.last_name}` : "Usuário";
-                return (
-                  <div key={comment.id} className="flex gap-4">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-100 to-orange-100 flex items-center justify-center font-bold text-slate-600 flex-shrink-0 uppercase">
-                      {commentAutor.charAt(0)}
-                    </div>
-                    <div className="flex-1 bg-slate-50 p-4 rounded-2xl rounded-tl-none border border-slate-100">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-bold text-slate-800 text-sm">{commentAutor}</span>
-                        <span className="text-xs text-slate-400">{formatDate(comment.criado_em)}</span>
-                      </div>
-                      <p className="text-slate-600 text-sm leading-relaxed">{comment.texto}</p>
-                    </div>
+              {comentarios.length > 0 ? comentarios.map((comment: any) => (
+                <div key={comment.id} className="flex gap-4">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-100 to-orange-100 flex items-center justify-center font-bold text-slate-600 flex-shrink-0">
+                    {comment.autor.charAt(0)}
                   </div>
-                );
-              }) : (
+                  <div className="flex-1 bg-slate-50 p-4 rounded-2xl rounded-tl-none border border-slate-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-bold text-slate-800 text-sm">{comment.autor}</span>
+                      <span className="text-xs text-slate-400">{comment.tempo}</span>
+                    </div>
+                    <p className="text-slate-600 text-sm leading-relaxed">{comment.texto}</p>
+                  </div>
+                </div>
+              )) : (
                 <p className="text-slate-500 text-sm">Nenhum comentário ainda. Seja o primeiro a comentar!</p>
               )}
             </div>

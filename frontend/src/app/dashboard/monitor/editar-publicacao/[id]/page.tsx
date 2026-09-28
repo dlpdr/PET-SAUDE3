@@ -15,8 +15,8 @@ export default function EditarPublicacao() {
   const [categoria, setCategoria] = useState("");
   const [texto, setTexto] = useState("");
   const [dataAtividade, setDataAtividade] = useState("");
-  const [imagem, setImagem] = useState<File | null>(null);
-  const [descricaoImagem, setDescricaoImagem] = useState("");
+  const [imagens, setImagens] = useState<File[]>([]);
+  const [descricoesImagens, setDescricoesImagens] = useState<string[]>([]);
   const [statusAtual, setStatusAtual] = useState("");
   const [motivoRejeicao, setMotivoRejeicao] = useState("");
 
@@ -72,10 +72,10 @@ export default function EditarPublicacao() {
         formData.append("data_atividade", dataAtividade);
       }
 
-      if (imagem) {
-        formData.append("novas_imagens", imagem);
-        formData.append("descricoes_imagens", descricaoImagem || "Imagem anexada");
-      }
+      imagens.forEach((img, index) => {
+        formData.append("novas_imagens", img);
+        formData.append("descricoes_imagens", descricoesImagens[index] || "Imagem anexada");
+      });
 
       await api.patch(`/publications/manage/${id}/`, formData, {
         headers: {
@@ -192,38 +192,68 @@ export default function EditarPublicacao() {
               />
             </div>
 
-            {/* Upload de Imagem */}
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-slate-700">Nova Imagem (Deixe vazio para manter a atual)</label>
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 w-full border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors relative">
-                  <input 
-                    type="file" 
-                    accept="image/*"
-                    onChange={(e) => setImagem(e.target.files ? e.target.files[0] : null)}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                  <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center mb-2 shadow-sm">
-                    <UploadCloud size={20} className="text-[var(--color-brand-blue-light)]" />
-                  </div>
-                  <p className="text-sm font-medium text-slate-700">
-                    {imagem ? imagem.name : "Clique para anexar nova imagem"}
-                  </p>
+            {/* Upload de Imagens */}
+            <div className="flex flex-col gap-4">
+              <label className="text-sm font-semibold text-slate-700">Adicionar Novas Imagens (Opcional - Selecione múltiplas segurando Shift ou Ctrl)</label>
+              
+              <div className="w-full border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors relative min-h-[120px]">
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      const newFiles = Array.from(e.target.files);
+                      setImagens(prev => [...prev, ...newFiles]);
+                      setDescricoesImagens(prev => [...prev, ...newFiles.map(() => "")]);
+                    }
+                  }}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center mb-2 shadow-sm">
+                  <UploadCloud size={20} className="text-[var(--color-brand-blue-light)]" />
                 </div>
-                
-                {imagem && (
-                  <div className="flex-1 flex flex-col gap-2">
-                    <label className="text-xs font-semibold text-slate-500">Descrição da Imagem</label>
-                    <input 
-                      type="text" 
-                      value={descricaoImagem}
-                      onChange={(e) => setDescricaoImagem(e.target.value)}
-                      placeholder="Descrição acessível da imagem..." 
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)]"
-                    />
-                  </div>
-                )}
+                <p className="text-sm font-medium text-slate-700">
+                  Clique ou arraste para anexar imagens adicionais
+                </p>
+                <p className="text-xs text-slate-400 mt-1">{imagens.length} novo(s) arquivo(s) selecionado(s)</p>
               </div>
+              
+              {imagens.length > 0 && (
+                <div className="flex flex-col gap-3 mt-2">
+                  <p className="text-sm font-semibold text-slate-700">Descrições Acessíveis (Obrigatório para acessibilidade)</p>
+                  {imagens.map((img, index) => (
+                    <div key={index} className="flex flex-col md:flex-row gap-4 items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <div className="w-full md:w-1/3 truncate text-sm font-medium text-slate-600 flex items-center gap-2">
+                        <div className="h-8 w-8 bg-slate-200 rounded flex-shrink-0 bg-cover bg-center" style={{ backgroundImage: `url(${URL.createObjectURL(img)})` }}></div>
+                        <span className="truncate">{img.name}</span>
+                      </div>
+                      <input 
+                        type="text" 
+                        value={descricoesImagens[index] || ""}
+                        onChange={(e) => {
+                          const newDesc = [...descricoesImagens];
+                          newDesc[index] = e.target.value;
+                          setDescricoesImagens(newDesc);
+                        }}
+                        placeholder="Descreva esta imagem para leitores de tela..." 
+                        className="flex-1 w-full px-4 py-2 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)]"
+                        required
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setImagens(prev => prev.filter((_, i) => i !== index));
+                          setDescricoesImagens(prev => prev.filter((_, i) => i !== index));
+                        }}
+                        className="text-red-500 hover:text-red-700 p-2 text-sm font-medium"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row justify-end gap-4 mt-6 pt-6 border-t border-slate-100">
