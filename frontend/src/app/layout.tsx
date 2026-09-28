@@ -39,10 +39,10 @@ export default function RootLayout({
             </div>
             
             <div className="flex justify-center gap-8">
-              <a href="https://portais.univasf.edu.br/" target="_blank" rel="noopener noreferrer" className="h-12 w-24 relative opacity-70 hover:opacity-100 transition-opacity grayscale hover:grayscale-0 cursor-pointer block">
+              <a href="https://portais.univasf.edu.br/" target="_blank" rel="noopener noreferrer" className="h-12 w-24 relative opacity-70 hover:opacity-100 transition-opacity cursor-pointer block">
                 <Image src="/logos/univasf.png" alt="UNIVASF" fill className="object-contain" />
               </a>
-              <a href="https://afranio.pe.gov.br/" target="_blank" rel="noopener noreferrer" className="h-12 w-24 relative opacity-70 hover:opacity-100 transition-opacity grayscale hover:grayscale-0 cursor-pointer block">
+              <a href="https://afranio.pe.gov.br/" target="_blank" rel="noopener noreferrer" className="h-12 w-24 relative opacity-70 hover:opacity-100 transition-opacity cursor-pointer block">
                 <Image src="/logos/afranio.png" alt="Prefeitura de Afrânio" fill className="object-contain" />
               </a>
             </div>
