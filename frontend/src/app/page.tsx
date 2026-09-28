@@ -1,69 +1,182 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { ArrowRight, Activity, BookOpen, Users, ShieldCheck } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
+  const fadeIn = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.6 }
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex flex-col items-center justify-center w-full">
+      
+      {/* Hero Section */}
+      <section className="relative w-full max-w-6xl mx-auto px-6 pt-20 pb-32 flex flex-col items-center text-center">
+        <motion.div 
+          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 border border-orange-100 text-[var(--color-brand-orange)] text-sm font-medium mb-8"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+          </span>
+          Plataforma Oficial Lançada
+        </motion.div>
+
+        <motion.h1 
+          className="text-5xl md:text-7xl font-bold tracking-tight text-slate-900 mb-6 max-w-4xl leading-tight"
+          {...fadeIn}
+        >
+          Transformando a <br className="hidden md:block"/>
+          <span className="text-gradient">Informação e Saúde Digital</span>
+        </motion.h1>
+
+        <motion.p 
+          className="text-lg text-slate-600 mb-10 max-w-2xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          Uma ponte digital entre a comunidade acadêmica e a sociedade. 
+          Acompanhe nossas publicações, atividades e o impacto no Vale do São Francisco.
+        </motion.p>
+
+        <motion.div 
+          className="flex flex-col sm:flex-row gap-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <Link href="/register" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--color-brand-blue-dark)] text-white rounded-full font-medium hover:bg-slate-800 transition-all hover:shadow-[0_0_20px_rgba(28,58,90,0.3)] hover:-translate-y-1">
+            Faça Parte
+            <ArrowRight size={18} />
+          </Link>
+          <Link href="#atividades" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-slate-700 border border-slate-200 rounded-full font-medium hover:bg-slate-50 hover:border-slate-300 transition-all">
+            Explorar Atividades
+          </Link>
+        </motion.div>
+      </section>
+
+      {/* Partners Strip */}
+      <section className="w-full border-y border-slate-100 bg-white/50 backdrop-blur-sm py-12" id="parceiros">
+        <div className="max-w-6xl mx-auto px-6">
+          <p className="text-center text-sm font-medium text-slate-400 mb-8 uppercase tracking-widest">Realização e Parceria</p>
+          <div className="flex flex-wrap justify-center items-center gap-16 md:gap-32">
+            <motion.div whileHover={{ scale: 1.05 }} className="relative h-16 w-48">
+              <Image src="/logos/univasf.png" alt="UNIVASF" fill className="object-contain" />
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} className="relative h-20 w-56">
+              <Image src="/logos/petsaude.png" alt="PET Saúde" fill className="object-contain" />
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} className="relative h-20 w-48">
+              <Image src="/logos/afranio.png" alt="Prefeitura de Afrânio" fill className="object-contain" />
+            </motion.div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* Bento Grid Features */}
+      <section className="w-full max-w-6xl mx-auto px-6 py-32" id="sobre">
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-slate-900 mb-4">Nossos Pilares</h2>
+          <p className="text-slate-600">Conheça a estrutura que move nosso projeto adiante.</p>
         </div>
-      </main>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Card 1: Large */}
+          <motion.div 
+            className="md:col-span-2 glass-card p-8 flex flex-col justify-between group overflow-hidden relative"
+            whileHover={{ y: -5 }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+              <Activity size={120} className="text-[var(--color-brand-blue-light)] transform rotate-12" />
+            </div>
+            <div className="h-12 w-12 rounded-xl bg-blue-50 flex items-center justify-center text-[var(--color-brand-blue-light)] mb-8">
+              <Activity size={24} />
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-[var(--color-brand-blue-dark)] mb-3">Saúde Digital</h3>
+              <p className="text-slate-600 max-w-md">
+                Integração da tecnologia ao dia a dia da comunidade, promovendo educação em saúde com ferramentas modernas e acessíveis.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Card 2: Small */}
+          <motion.div 
+            className="glass-card p-8 flex flex-col justify-between group bg-gradient-to-br from-[var(--color-brand-green)] to-emerald-800 text-white"
+            whileHover={{ y: -5 }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+          >
+            <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center text-white mb-8">
+              <ShieldCheck size={24} />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold mb-3">Confiabilidade</h3>
+              <p className="text-emerald-50 text-sm">
+                Informações revisadas por especialistas e profissionais qualificados.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Card 3: Small */}
+          <motion.div 
+            className="glass-card p-8 flex flex-col justify-between group"
+            whileHover={{ y: -5 }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="h-12 w-12 rounded-xl bg-orange-50 flex items-center justify-center text-[var(--color-brand-orange)] mb-8">
+              <BookOpen size={24} />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Publicações</h3>
+              <p className="text-slate-600 text-sm">
+                Acervo de cartilhas, artigos e informativos abertos ao público.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Card 4: Medium */}
+          <motion.div 
+            className="md:col-span-2 glass-card p-8 flex flex-col justify-between group bg-slate-900 text-white relative overflow-hidden"
+            whileHover={{ y: -5 }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+          >
+             <div className="absolute -bottom-10 -right-10 opacity-10">
+              <Users size={200} />
+            </div>
+            <div className="h-12 w-12 rounded-xl bg-slate-800 flex items-center justify-center text-white mb-8">
+              <Users size={24} />
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold mb-3">Extensão Universitária</h3>
+              <p className="text-slate-400 max-w-md">
+                Conectando alunos, professores e a rede pública de saúde de Afrânio para gerar impacto real e duradouro.
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
     </div>
   );
 }
