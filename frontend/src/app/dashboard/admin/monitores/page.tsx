@@ -2,18 +2,19 @@
 
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
-import { UserPlus, Users, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { UserPlus, Users, Loader2, CheckCircle2, AlertCircle, Trash2 } from "lucide-react";
 
-interface Monitor {
+interface User {
   id: number;
   username: string;
   email: string;
   first_name: string;
   last_name: string;
+  role: string;
 }
 
 export default function AdminMonitoresPage() {
-  const [monitores, setMonitores] = useState<Monitor[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   // Form State
@@ -25,20 +26,20 @@ export default function AdminMonitoresPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
-  const fetchMonitores = async () => {
+  const fetchUsers = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get('/auth/monitors/');
-      setMonitores(response.data);
+      const response = await api.get('/auth/users/');
+      setUsers(response.data);
     } catch (error) {
-      console.error("Erro ao buscar monitores:", error);
+      console.error("Erro ao buscar usuários:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchMonitores();
+    fetchUsers();
   }, []);
 
   const handleCreateMonitor = async (e: React.FormEvent) => {
@@ -65,8 +66,7 @@ export default function AdminMonitoresPage() {
       setFirstName("");
       setLastName("");
       
-      // Refresh list
-      fetchMonitores();
+      fetchUsers();
       
     } catch (error: any) {
       console.error(error);
@@ -74,6 +74,27 @@ export default function AdminMonitoresPage() {
       setFeedback({ type: 'error', message: detail });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleRoleChange = async (userId: number, newRole: string) => {
+    try {
+      await api.patch(`/auth/users/${userId}/`, { role: newRole });
+      fetchUsers();
+    } catch (error) {
+      console.error("Erro ao atualizar papel do usuário:", error);
+      alert("Erro ao atualizar o nível de acesso.");
+    }
+  };
+
+  const handleDeleteUser = async (userId: number) => {
+    if (!window.confirm("Tem certeza que deseja excluir permanentemente este usuário?")) return;
+    try {
+      await api.delete(`/auth/users/${userId}/`);
+      fetchUsers();
+    } catch (error) {
+      console.error("Erro ao excluir usuário:", error);
+      alert("Erro ao excluir usuário.");
     }
   };
 
@@ -86,18 +107,18 @@ export default function AdminMonitoresPage() {
           <Users size={24} />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Gerenciar Monitores</h2>
-          <p className="text-sm text-slate-500">Crie novas contas de monitores ou visualize os monitores ativos.</p>
+          <h2 className="text-xl font-bold text-slate-800">Gerenciar Usuários & Monitores</h2>
+          <p className="text-sm text-slate-500">Crie contas de monitores ou gerencie todos os usuários da plataforma.</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Formulário de Criação */}
+        {/* Formulário de Criação (Monitores) */}
         <div className="lg:col-span-1 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden h-fit">
           <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
             <UserPlus size={18} className="text-[var(--color-brand-blue-light)]" />
-            <h3 className="font-bold text-slate-800">Novo Monitor</h3>
+            <h3 className="font-bold text-slate-800">Criar Monitor</h3>
           </div>
           <div className="p-6">
             
@@ -157,11 +178,11 @@ export default function AdminMonitoresPage() {
           </div>
         </div>
 
-        {/* Lista de Monitores */}
+        {/* Lista de Usuários Gerais */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-            <h3 className="font-bold text-slate-800">Monitores Ativos</h3>
-            <span className="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded-md">{monitores.length}</span>
+            <h3 className="font-bold text-slate-800">Todos os Usuários</h3>
+            <span className="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded-md">{users.length}</span>
           </div>
           
           {isLoading ? (
@@ -173,31 +194,49 @@ export default function AdminMonitoresPage() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-100">
-                    <th className="px-6 py-3 font-medium">Nome Completo</th>
                     <th className="px-6 py-3 font-medium">Usuário</th>
-                    <th className="px-6 py-3 font-medium">E-mail</th>
+                    <th className="px-6 py-3 font-medium">Papel / Nível</th>
+                    <th className="px-6 py-3 font-medium text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {monitores.map((monitor) => (
-                    <tr key={monitor.id} className="hover:bg-slate-50 transition-colors">
+                  {users.map((user) => (
+                    <tr key={user.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4">
-                        <p className="font-semibold text-slate-800 text-sm">{monitor.first_name} {monitor.last_name}</p>
+                        <p className="font-semibold text-slate-800 text-sm">{user.first_name} {user.last_name}</p>
+                        <p className="text-xs text-slate-500">@{user.username} • {user.email}</p>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-600 font-medium">
-                        @{monitor.username}
+                      <td className="px-6 py-4">
+                        <select
+                          value={user.role}
+                          onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                          className={`text-xs font-semibold px-2 py-1 rounded-md border-0 bg-opacity-10 cursor-pointer outline-none focus:ring-2 
+                            ${user.role === 'admin' ? 'bg-purple-500 text-purple-700 focus:ring-purple-200' : 
+                              user.role === 'monitor' ? 'bg-[var(--color-brand-blue-light)] text-[var(--color-brand-blue-dark)] focus:ring-blue-200' : 
+                              'bg-slate-500 text-slate-700 focus:ring-slate-200'}`}
+                        >
+                          <option value="visitante_registrado">Visitante</option>
+                          <option value="monitor">Monitor</option>
+                          <option value="admin">Admin</option>
+                        </select>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-500">
-                        {monitor.email}
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Excluir usuário"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
               
-              {monitores.length === 0 && (
+              {users.length === 0 && (
                 <div className="p-8 text-center text-slate-500">
-                  <p className="text-sm font-medium">Nenhum monitor cadastrado ainda.</p>
+                  <p className="text-sm font-medium">Nenhum usuário encontrado.</p>
                 </div>
               )}
             </div>
