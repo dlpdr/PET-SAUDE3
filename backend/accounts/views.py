@@ -1,4 +1,4 @@
-from rest_framework import generics
+Ôªøfrom rest_framework import generics
 from rest_framework.permissions import AllowAny
 from .models import User
 from .serializers import RegisterSerializer
@@ -35,8 +35,8 @@ class MonitorListCreateView(generics.ListCreateAPIView):
         user.set_password(temp_password)
         user.save()
         send_mail(
-            'Sua conta de Monitor no PET Sa˙de',
-            f'Ol· {user.first_name},\\n\\nSua conta de monitor foi criada com sucesso.\\nSua senha tempor·ria È: {temp_password}\\n\\nFaÁa login e altere sua senha.',
+            'Sua conta de Monitor no PET Sa√∫de',
+            f'Ol√° {user.first_name},\\n\\nSua conta de monitor foi criada com sucesso.\\nSua senha tempor√°ria √©: {temp_password}\\n\\nFa√ßa login e altere sua senha.',
             'admin@petsaude.com',
             [user.email],
             fail_silently=False,
@@ -78,4 +78,5 @@ class GoogleLoginView(APIView):
             })
         except ValueError:
             return Response({'error': 'Invalid token'}, status=400)
+
 
