@@ -1,22 +1,41 @@
 "use client";
 
-import { Clock, CheckCircle2, XCircle, FileEdit, ArrowUpRight } from "lucide-react";
+import { Clock, CheckCircle2, XCircle, FileEdit, ArrowUpRight, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import api from "@/lib/api";
+
+interface Publication {
+  id: number;
+  titulo: string;
+  criado_em: string;
+  status: string;
+  motivo_rejeicao?: string;
+}
 
 export default function MonitorDashboard() {
-  // Dados mockados para ilustrar a interface até a integração
-  const stats = [
-    { label: "Publicados", value: 12, icon: CheckCircle2, color: "text-green-600", bg: "bg-green-100" },
-    { label: "Em Análise", value: 3, icon: Clock, color: "text-amber-600", bg: "bg-amber-100" },
-    { label: "Rascunhos", value: 2, icon: FileEdit, color: "text-slate-600", bg: "bg-slate-100" },
-    { label: "Rejeitados", value: 1, icon: XCircle, color: "text-red-600", bg: "bg-red-100" },
-  ];
+  const [posts, setPosts] = useState<Publication[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const recentPosts = [
-    { id: 1, title: "Cartilha de Saúde Mental", date: "28/09/2026", status: "publicado" },
-    { id: 2, title: "Ação Comunitária em Afrânio", date: "25/09/2026", status: "pendente" },
-    { id: 3, title: "Artigo: Uso de Tecnologias no SUS", date: "20/09/2026", status: "rejeitado", motivo: "Faltam referências bibliográficas na página 2." },
-    { id: 4, title: "Dicas de Alimentação Saudável", date: "18/09/2026", status: "rascunho" },
+  useEffect(() => {
+    const fetchMyPosts = async () => {
+      try {
+        const response = await api.get('/publications/');
+        setPosts(response.data);
+      } catch (error) {
+        console.error("Erro ao buscar publicações", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchMyPosts();
+  }, []);
+
+  const stats = [
+    { label: "Publicados", value: posts.filter(p => p.status === 'publicado').length, icon: CheckCircle2, color: "text-green-600", bg: "bg-green-100" },
+    { label: "Em Análise", value: posts.filter(p => p.status === 'pendente').length, icon: Clock, color: "text-amber-600", bg: "bg-amber-100" },
+    { label: "Rascunhos", value: posts.filter(p => p.status === 'rascunho').length, icon: FileEdit, color: "text-slate-600", bg: "bg-slate-100" },
+    { label: "Rejeitados", value: posts.filter(p => p.status === 'rejeitado').length, icon: XCircle, color: "text-red-600", bg: "bg-red-100" },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -30,6 +49,11 @@ export default function MonitorDashboard() {
       default:
         return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">Rascunho</span>;
     }
+  };
+
+  const formatDate = (isoStr: string) => {
+    if (!isoStr) return "";
+    return new Date(isoStr).toLocaleDateString('pt-BR');
   };
 
   return (
@@ -65,39 +89,45 @@ export default function MonitorDashboard() {
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-100">
-                <th className="px-6 py-4 font-medium">Título da Publicação</th>
-                <th className="px-6 py-4 font-medium">Data de Criação</th>
-                <th className="px-6 py-4 font-medium">Status</th>
-                <th className="px-6 py-4 font-medium text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {recentPosts.map((post) => (
-                <tr key={post.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <p className="font-semibold text-slate-800">{post.title}</p>
-                    {post.motivo && (
-                      <p className="text-xs text-red-500 mt-1">Motivo: {post.motivo}</p>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{post.date}</td>
-                  <td className="px-6 py-4">{getStatusBadge(post.status)}</td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="text-[var(--color-brand-blue-light)] hover:text-blue-800 text-sm font-medium transition-colors">
-                      {post.status === "rascunho" || post.status === "rejeitado" ? "Editar" : "Visualizar"}
-                    </button>
-                  </td>
+        {isLoading ? (
+          <div className="p-12 flex justify-center items-center">
+            <Loader2 className="animate-spin text-slate-400" size={32} />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-100">
+                  <th className="px-6 py-4 font-medium">Título da Publicação</th>
+                  <th className="px-6 py-4 font-medium">Data de Criação</th>
+                  <th className="px-6 py-4 font-medium">Status</th>
+                  <th className="px-6 py-4 font-medium text-right">Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {posts.map((post) => (
+                  <tr key={post.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <p className="font-semibold text-slate-800">{post.titulo}</p>
+                      {post.motivo_rejeicao && (
+                        <p className="text-xs text-red-500 mt-1">Motivo: {post.motivo_rejeicao}</p>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{formatDate(post.criado_em)}</td>
+                    <td className="px-6 py-4">{getStatusBadge(post.status)}</td>
+                    <td className="px-6 py-4 text-right">
+                      <button className="text-[var(--color-brand-blue-light)] hover:text-blue-800 text-sm font-medium transition-colors">
+                        {post.status === "rascunho" || post.status === "rejeitado" ? "Editar" : "Visualizar"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
         
-        {recentPosts.length === 0 && (
+        {!isLoading && posts.length === 0 && (
           <div className="p-12 text-center flex flex-col items-center">
             <FileEdit size={48} className="text-slate-300 mb-4" />
             <p className="text-slate-500 font-medium">Você ainda não tem nenhuma publicação.</p>

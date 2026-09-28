@@ -1,10 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { LayoutDashboard, PlusCircle, LogOut, CheckSquare, Users, Library } from "lucide-react";
+import { LayoutDashboard, PlusCircle, LogOut, CheckSquare, Users, Library, ExternalLink } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Cookies from "js-cookie";
+import { useEffect, useState } from "react";
 
 export default function DashboardLayout({
   children,
@@ -13,6 +15,18 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const isAdmin = pathname.includes("/dashboard/admin");
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserRole(Cookies.get("user_role") || null);
+  }, []);
+
+  const handleLogout = () => {
+    Cookies.remove("access_token");
+    Cookies.remove("refresh_token");
+    Cookies.remove("user_role");
+    window.location.href = "/";
+  };
 
   const monitorNavItems = [
     { name: "Visão Geral", href: "/dashboard/monitor", icon: LayoutDashboard },
@@ -21,8 +35,8 @@ export default function DashboardLayout({
 
   const adminNavItems = [
     { name: "Fila de Aprovação", href: "/dashboard/admin", icon: CheckSquare },
-    { name: "Acervo Completo", href: "#", icon: Library },
-    { name: "Monitores", href: "#", icon: Users },
+    // Temporariamente apontando para a página pública para MVP
+    { name: "Acervo Completo", href: "/publicacoes", icon: Library },
   ];
 
   const navItems = isAdmin ? adminNavItems : monitorNavItems;
@@ -33,9 +47,9 @@ export default function DashboardLayout({
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex">
         <div className="h-20 flex items-center px-8 border-b border-slate-100">
-          <div className="h-10 w-24 relative">
+          <Link href="/" className="h-10 w-24 relative cursor-pointer">
             <Image src="/logos/petsaude.png" alt="PET Saúde" fill className="object-contain object-left" />
-          </div>
+          </Link>
         </div>
 
         <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-2">
@@ -60,16 +74,27 @@ export default function DashboardLayout({
               </Link>
             );
           })}
+
+          <div className="my-4 border-t border-slate-100" />
+          
+          <Link 
+            href="/publicacoes"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition-all"
+            target="_blank"
+          >
+            <ExternalLink size={18} />
+            <span className="font-medium text-sm">Ver Site Público</span>
+          </Link>
         </div>
 
         <div className="p-4 border-t border-slate-100">
-          <Link 
-            href="/"
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all"
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all"
           >
             <LogOut size={18} />
             <span className="font-medium text-sm">Sair da Conta</span>
-          </Link>
+          </button>
         </div>
       </aside>
 
@@ -83,11 +108,11 @@ export default function DashboardLayout({
           
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-bold text-slate-900">{isAdmin ? "Admin Oficial" : "João Silva"}</p>
+              <p className="text-sm font-bold text-slate-900">{isAdmin ? "Admin Oficial" : "Sua Conta"}</p>
               <p className="text-xs text-slate-500">{isAdmin ? "Coordenador" : "Monitor"}</p>
             </div>
             <div className={`h-10 w-10 rounded-full text-white flex items-center justify-center font-bold shadow-sm ${isAdmin ? "bg-slate-800" : "bg-gradient-to-tr from-[var(--color-brand-blue-light)] to-[var(--color-brand-orange)]"}`}>
-              {isAdmin ? "AD" : "JS"}
+              {isAdmin ? "AD" : "U"}
             </div>
           </div>
         </header>

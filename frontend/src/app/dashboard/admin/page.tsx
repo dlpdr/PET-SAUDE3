@@ -1,38 +1,45 @@
 "use client";
 
-import { CheckSquare, Search, FileText, User, Filter, AlertCircle } from "lucide-react";
+import { CheckSquare, Search, FileText, User, Filter, AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import api from "@/lib/api";
+
+interface Publication {
+  id: number;
+  titulo: string;
+  autor: {
+    first_name: string;
+    last_name: string;
+  };
+  criado_em: string;
+  categoria: string;
+  status: string;
+}
 
 export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [pendingPosts, setPendingPosts] = useState<Publication[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const pendingPosts = [
-    { 
-      id: 1, 
-      title: "Cartilha de Prevenção a Dengue", 
-      author: "Maria Oliveira", 
-      date: "28/09/2026", 
-      category: "Cartilha Educativa",
-      status: "pendente"
-    },
-    { 
-      id: 2, 
-      title: "Relatório da Ação na Praça Matriz", 
-      author: "João Silva", 
-      date: "25/09/2026", 
-      category: "Ação Comunitária",
-      status: "pendente"
-    },
-    { 
-      id: 3, 
-      title: "Uso consciente de medicamentos", 
-      author: "Ana Costa", 
-      date: "24/09/2026", 
-      category: "Artigo Acadêmico",
-      status: "pendente"
-    },
-  ];
+  const fetchPending = async () => {
+    try {
+      const response = await api.get('/publications/pending/');
+      setPendingPosts(response.data);
+    } catch (error) {
+      console.error("Erro ao buscar publicações pendentes:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPending();
+  }, []);
+
+  const formatDate = (isoStr: string) => {
+    return new Date(isoStr).toLocaleDateString('pt-BR');
+  };
 
   return (
     <div className="flex flex-col gap-8 pb-12">
@@ -73,46 +80,58 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-100">
-                <th className="px-6 py-4 font-medium">Publicação</th>
-                <th className="px-6 py-4 font-medium">Autor / Monitor</th>
-                <th className="px-6 py-4 font-medium">Data de Envio</th>
-                <th className="px-6 py-4 font-medium text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {pendingPosts.map((post) => (
-                <tr key={post.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <p className="font-semibold text-slate-800">{post.title}</p>
-                    <p className="text-xs text-slate-500 flex items-center gap-1 mt-1">
-                      <FileText size={12} /> {post.category}
-                    </p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm text-slate-700 flex items-center gap-1.5">
-                      <User size={14} className="text-slate-400" /> {post.author}
-                    </p>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{post.date}</td>
-                  <td className="px-6 py-4 text-right">
-                    <Link 
-                      href={`/dashboard/admin/revisar`} 
-                      className="inline-flex items-center gap-1 px-4 py-2 bg-blue-50 text-[var(--color-brand-blue-dark)] text-sm font-medium rounded-lg hover:bg-blue-100 transition-colors"
-                    >
-                      <CheckSquare size={16} /> Revisar
-                    </Link>
-                  </td>
+        {isLoading ? (
+          <div className="p-12 flex justify-center items-center">
+            <Loader2 className="animate-spin text-slate-400" size={32} />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-100">
+                  <th className="px-6 py-4 font-medium">Publicação</th>
+                  <th className="px-6 py-4 font-medium">Autor / Monitor</th>
+                  <th className="px-6 py-4 font-medium">Data de Envio</th>
+                  <th className="px-6 py-4 font-medium text-right">Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {pendingPosts.filter(p => p.titulo.toLowerCase().includes(searchTerm.toLowerCase())).map((post) => (
+                  <tr key={post.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <p className="font-semibold text-slate-800">{post.titulo}</p>
+                      <p className="text-xs text-slate-500 flex items-center gap-1 mt-1">
+                        <FileText size={12} /> {post.categoria}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-slate-700 flex items-center gap-1.5">
+                        <User size={14} className="text-slate-400" /> {post.autor?.first_name} {post.autor?.last_name}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{formatDate(post.criado_em)}</td>
+                    <td className="px-6 py-4 text-right">
+                      {/* Ao invés de uma tela de revisar mockada, vamos aprovar direto por aqui pra facilitar o MVP */}
+                      <button 
+                        onClick={async () => {
+                          if (confirm("Deseja realmente aprovar e publicar este conteúdo no site?")) {
+                            await api.post(`/publications/${post.id}/approve/`);
+                            fetchPending();
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 px-4 py-2 bg-green-50 text-green-700 text-sm font-medium rounded-lg hover:bg-green-100 transition-colors"
+                      >
+                        <CheckSquare size={16} /> Aprovar Direto
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
         
-        {pendingPosts.length === 0 && (
+        {!isLoading && pendingPosts.length === 0 && (
           <div className="p-12 text-center flex flex-col items-center">
             <CheckSquare size={48} className="text-slate-300 mb-4" />
             <p className="text-slate-500 font-medium">Você não tem publicações pendentes.</p>

@@ -4,15 +4,37 @@ import { ArrowLeft, UploadCloud, Save, Send } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import api from "@/lib/api";
+
 export default function NovaPublicacao() {
   const [titulo, setTitulo] = useState("");
   const [categoria, setCategoria] = useState("");
   const [texto, setTexto] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent, status: "rascunho" | "pendente") => {
+  const handleSubmit = async (e: React.FormEvent, status: "rascunho" | "pendente") => {
     e.preventDefault();
-    // Simulação do Submit - Posteriormente integrará com a API do Django
-    alert(`Publicação salva como: ${status}\nTítulo: ${titulo}`);
+    if (!titulo || !categoria || !texto) {
+      alert("Por favor, preencha todos os campos obrigatórios.");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      await api.post('/publications/', {
+        titulo,
+        categoria: categoria === 'acao' ? 'Ação Comunitária' : categoria === 'cartilha' ? 'Cartilha Educativa' : 'Artigo Acadêmico',
+        texto,
+        status
+      });
+      alert(`Publicação salva com sucesso!`);
+      window.location.href = '/dashboard/monitor';
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao salvar a publicação.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
