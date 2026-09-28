@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckSquare, Search, FileText, User, Filter, AlertCircle, Loader2 } from "lucide-react";
+import { CheckSquare, Search, FileText, User, Filter, AlertCircle, Loader2, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
@@ -51,6 +51,22 @@ export default function AdminDashboard() {
       } catch (error) {
         console.error("Erro ao aprovar:", error);
         alert("Erro ao aprovar a publicação.");
+      } finally {
+        setActionLoading(null);
+      }
+    }
+  };
+
+  const handleReject = async (id: number) => {
+    const motivo = prompt("Por favor, informe o motivo da rejeição para que o autor possa corrigir:");
+    if (motivo !== null) {
+      setActionLoading(id);
+      try {
+        await api.post(`/publications/manage/${id}/reject/`, { motivo });
+        fetchPending();
+      } catch (error) {
+        console.error("Erro ao rejeitar:", error);
+        alert("Erro ao rejeitar a publicação.");
       } finally {
         setActionLoading(null);
       }
@@ -133,6 +149,14 @@ export default function AdminDashboard() {
                       >
                         Visualizar
                       </Link>
+                      <button 
+                        onClick={() => handleReject(post.id)}
+                        disabled={actionLoading === post.id}
+                        className="inline-flex items-center gap-1 px-4 py-2 bg-red-50 text-red-600 text-sm font-medium rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                      >
+                        {actionLoading === post.id ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />} 
+                        Rejeitar
+                      </button>
                       <button 
                         onClick={() => handleApprove(post.id)}
                         disabled={actionLoading === post.id}
