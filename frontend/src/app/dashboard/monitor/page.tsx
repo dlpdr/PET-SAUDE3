@@ -83,7 +83,7 @@ export default function MonitorDashboard() {
           </div>
           <Link 
             href="/dashboard/monitor/nova-publicacao" 
-            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-[var(--color-brand-blue-dark)] text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--color-brand-blue-dark)] text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors"
           >
             Nova Publicação <ArrowUpRight size={16} />
           </Link>
