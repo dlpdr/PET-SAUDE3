@@ -11,6 +11,7 @@ export default function NovaPublicacao() {
   const [titulo, setTitulo] = useState("");
   const [categoria, setCategoria] = useState("");
   const [texto, setTexto] = useState("");
+  const [dataAtividade, setDataAtividade] = useState("");
   const [imagem, setImagem] = useState<File | null>(null);
   const [descricaoImagem, setDescricaoImagem] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,6 +33,9 @@ export default function NovaPublicacao() {
       formData.append("categoria", categoria === 'acao' ? 'Ação Comunitária' : categoria === 'cartilha' ? 'Cartilha Educativa' : 'Artigo Acadêmico');
       formData.append("texto", texto);
       formData.append("status", status);
+      if (dataAtividade) {
+        formData.append("data_atividade", dataAtividade);
+      }
 
       if (imagem) {
         formData.append("novas_imagens", imagem);
@@ -111,6 +115,16 @@ export default function NovaPublicacao() {
                   <option value="cartilha">Cartilha Educativa</option>
                   <option value="artigo">Artigo Acadêmico</option>
                 </select>
+              </div>
+              
+              <div className="md:w-1/4 flex flex-col gap-2">
+                <label className="text-sm font-semibold text-slate-700">Data da Atividade</label>
+                <input 
+                  type="date" 
+                  value={dataAtividade}
+                  onChange={(e) => setDataAtividade(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all text-slate-700"
+                />
               </div>
             </div>
 

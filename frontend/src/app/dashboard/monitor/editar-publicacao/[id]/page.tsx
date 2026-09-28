@@ -14,6 +14,7 @@ export default function EditarPublicacao() {
   const [titulo, setTitulo] = useState("");
   const [categoria, setCategoria] = useState("");
   const [texto, setTexto] = useState("");
+  const [dataAtividade, setDataAtividade] = useState("");
   const [imagem, setImagem] = useState<File | null>(null);
   const [descricaoImagem, setDescricaoImagem] = useState("");
   const [statusAtual, setStatusAtual] = useState("");
@@ -38,6 +39,9 @@ export default function EditarPublicacao() {
         setTexto(post.texto);
         setStatusAtual(post.status);
         setMotivoRejeicao(post.motivo_rejeicao || "");
+        if (post.data_atividade) {
+          setDataAtividade(post.data_atividade);
+        }
       } catch (err: any) {
         console.error(err);
         setFeedback({ type: 'error', message: "Erro ao carregar a publicação. Verifique se ela existe e se você tem permissão." });
@@ -64,6 +68,9 @@ export default function EditarPublicacao() {
       formData.append("categoria", categoria === 'acao' ? 'Ação Comunitária' : categoria === 'cartilha' ? 'Cartilha Educativa' : 'Artigo Acadêmico');
       formData.append("texto", texto);
       formData.append("status", novoStatus);
+      if (dataAtividade) {
+        formData.append("data_atividade", dataAtividade);
+      }
 
       if (imagem) {
         formData.append("novas_imagens", imagem);
@@ -160,6 +167,16 @@ export default function EditarPublicacao() {
                   <option value="cartilha">Cartilha Educativa</option>
                   <option value="artigo">Artigo Acadêmico</option>
                 </select>
+              </div>
+
+              <div className="md:w-1/4 flex flex-col gap-2">
+                <label className="text-sm font-semibold text-slate-700">Data da Atividade</label>
+                <input 
+                  type="date" 
+                  value={dataAtividade}
+                  onChange={(e) => setDataAtividade(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all text-slate-700"
+                />
               </div>
             </div>
 
