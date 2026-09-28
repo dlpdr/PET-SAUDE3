@@ -1,15 +1,62 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Mail, Lock, ArrowRight } from "lucide-react";
+import { Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
+import api from "@/lib/api";
+import Cookies from "js-cookie";
 
 export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMsg("");
+
+    try {
+      // Endpoint que configuramos na AWS para JWT
+      const response = await api.post('/accounts/login/', {
+        email,
+        password
+      });
+
+      const { access, refresh, role } = response.data;
+      
+      // Salva os tokens e o tipo de usuário nos cookies (válidos por 1 dia)
+      Cookies.set('access_token', access, { expires: 1 });
+      Cookies.set('refresh_token', refresh, { expires: 1 });
+      Cookies.set('user_role', role, { expires: 1 });
+
+      // Redireciona baseado no role
+      if (role === 'admin') {
+        window.location.href = '/dashboard/admin';
+      } else if (role === 'monitor') {
+        window.location.href = '/dashboard/monitor';
+      } else {
+        window.location.href = '/publicacoes'; // visitante comum
+      }
+      
+    } catch (error: any) {
+      console.error(error);
+      setErrorMsg(
+        error.response?.data?.detail || 
+        "Falha ao entrar. Verifique seu e-mail e senha."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] w-full px-6">
       
-      {/* Decorações de Fundo (mantendo a linguagem visual) */}
+      {/* Decorações de Fundo */}
       <div className="absolute top-[20%] left-[10%] w-[30%] h-[30%] rounded-full bg-[var(--color-brand-blue-light)] opacity-20 blur-[120px] -z-10 pointer-events-none" />
       <div className="absolute bottom-[20%] right-[10%] w-[25%] h-[25%] rounded-full bg-[var(--color-brand-green)] opacity-10 blur-[100px] -z-10 pointer-events-none" />
 
@@ -19,7 +66,6 @@ export default function LoginPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Detalhe de borda superior */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[var(--color-brand-blue-dark)] via-[var(--color-brand-blue-light)] to-[var(--color-brand-orange)]" />
 
         <div className="h-12 w-32 relative mb-8">
@@ -29,13 +75,21 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold text-slate-900 mb-2">Bem-vindo de volta</h1>
         <p className="text-slate-500 text-sm mb-8 text-center">Entre na sua conta para acessar o acervo e interagir com as publicações.</p>
 
-        <form className="w-full flex flex-col gap-4">
+        {errorMsg && (
+          <div className="w-full bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-100 mb-6 text-center">
+            {errorMsg}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} className="w-full flex flex-col gap-4">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               <Mail size={18} />
             </div>
             <input 
               type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Seu e-mail acadêmico" 
               className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all"
               required
@@ -48,6 +102,8 @@ export default function LoginPage() {
             </div>
             <input 
               type="password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="Sua senha" 
               className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all"
               required
@@ -62,9 +118,10 @@ export default function LoginPage() {
 
           <button 
             type="submit"
-            className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-blue-dark)] text-white rounded-xl font-medium hover:bg-slate-800 transition-all hover:shadow-lg"
+            disabled={isLoading}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-blue-dark)] text-white rounded-xl font-medium hover:bg-slate-800 transition-all hover:shadow-lg disabled:opacity-70"
           >
-            Entrar <ArrowRight size={18} />
+            {isLoading ? <Loader2 size={18} className="animate-spin" /> : <>Entrar <ArrowRight size={18} /></>}
           </button>
         </form>
 
