@@ -1,9 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, BookOpen, HeartPulse, Megaphone, FileText, Calendar } from "lucide-react";
+import { ArrowRight, BookOpen, HeartPulse, Megaphone, FileText, Calendar, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import api, { getMediaUrl } from "@/lib/api";
 
 export default function Home() {
   const fadeIn = {
@@ -12,33 +14,34 @@ export default function Home() {
     transition: { duration: 0.6 }
   };
 
-  // Mock de publicações para ilustrar a vitrine (até conectarmos com a API do Django)
-  const mockPosts = [
-    {
-      id: 1,
-      titulo: "Cartilha de Prevenção e Saúde Mental na Comunidade",
-      resumo: "Material desenvolvido pelos monitores para auxiliar as famílias da zona rural de Afrânio nas práticas de autocuidado.",
-      categoria: "Cartilha Educativa",
-      data: "28 Set, 2026",
-      imagem: "https://images.unsplash.com/photo-1576091160550-2173ff9e5ee5?q=80&w=600&auto=format&fit=crop"
-    },
-    {
-      id: 2,
-      titulo: "Ação de Conscientização na Praça Matriz",
-      resumo: "Mutirão de saúde digital onde os alunos do PET auxiliaram moradores a utilizarem os aplicativos do SUS.",
-      categoria: "Ação Comunitária",
-      data: "15 Set, 2026",
-      imagem: "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?q=80&w=600&auto=format&fit=crop"
-    },
-    {
-      id: 3,
-      titulo: "Artigo: O impacto da tecnologia no rastreio de doenças crônicas",
-      resumo: "Publicação científica dos pesquisadores do PET Saúde analisando dados colhidos no último semestre.",
-      categoria: "Artigo Acadêmico",
-      data: "02 Set, 2026",
-      imagem: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=600&auto=format&fit=crop"
-    }
-  ];
+  const [recentPosts, setRecentPosts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const res = await api.get('/publications/?ordering=-data_publicacao');
+        // Pega as 3 mais recentes
+        setRecentPosts(res.data.slice(0, 3));
+      } catch (err) {
+        console.error("Erro ao buscar publicações recentes:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPosts();
+  }, []);
+
+  const formatDate = (isoStr: string) => {
+    if (!isoStr) return "Sem data";
+    return new Date(isoStr).toLocaleDateString('pt-BR');
+  };
+
+  const getDefaultImage = (categoria: string) => {
+    if (categoria?.includes("Cartilha")) return "https://images.unsplash.com/photo-1576091160550-2173ff9e5ee5?q=80&w=600&auto=format&fit=crop";
+    if (categoria?.includes("Artigo")) return "https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=600&auto=format&fit=crop";
+    return "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?q=80&w=600&auto=format&fit=crop";
+  };
 
   return (
     <div className="flex flex-col items-center justify-center w-full overflow-hidden">
@@ -121,49 +124,59 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {mockPosts.map((post, index) => (
-            <motion.div 
-              key={post.id}
-              className="group bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 flex flex-col"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <div className="relative h-48 w-full overflow-hidden bg-slate-100">
-                {/* Imagem de placeholder */}
-                <div 
-                  className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500" 
-                  style={{ backgroundImage: `url(${post.imagem})` }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                <div className="absolute bottom-4 left-4">
-                  <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-[var(--color-brand-blue-dark)] text-xs font-bold rounded-full">
-                    {post.categoria}
-                  </span>
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="animate-spin text-[var(--color-brand-blue-light)]" size={48} />
+          </div>
+        ) : recentPosts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+            <p className="text-lg font-medium">Em breve novidades!</p>
+            <p className="text-sm">Nenhuma publicação encontrada no momento.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {recentPosts.map((post, index) => (
+              <motion.div 
+                key={post.id}
+                className="group bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 flex flex-col"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Link href={`/publicacoes/${post.id}`} className="block relative h-48 w-full overflow-hidden bg-slate-100">
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500" 
+                    style={{ backgroundImage: `url(${getMediaUrl(post.imagens?.[0]?.imagem) || getDefaultImage(post.categoria)})` }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                  <div className="absolute bottom-4 left-4">
+                    <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-[var(--color-brand-blue-dark)] text-xs font-bold rounded-full">
+                      {post.categoria}
+                    </span>
+                  </div>
+                </Link>
+                <div className="p-6 flex flex-col flex-grow">
+                  <div className="flex items-center gap-2 text-slate-400 text-sm mb-3">
+                    <Calendar size={14} />
+                    <span>{formatDate(post.data_publicacao)}</span>
+                  </div>
+                  <Link href={`/publicacoes/${post.id}`}>
+                    <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-[var(--color-brand-blue-light)] transition-colors line-clamp-2">
+                      {post.titulo}
+                    </h3>
+                  </Link>
+                  <p className="text-slate-600 text-sm line-clamp-3 mb-6 flex-grow" dangerouslySetInnerHTML={{ __html: post.texto.substring(0, 150) + "..." }} />
+                  <div className="mt-auto">
+                    <Link href={`/publicacoes/${post.id}`} className="text-[var(--color-brand-blue-dark)] font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+                      Ler mais <ArrowRight size={14} />
+                    </Link>
+                  </div>
                 </div>
-              </div>
-              <div className="p-6 flex flex-col flex-grow">
-                <div className="flex items-center gap-2 text-slate-400 text-sm mb-3">
-                  <Calendar size={14} />
-                  <span>{post.data}</span>
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-[var(--color-brand-blue-light)] transition-colors line-clamp-2">
-                  {post.titulo}
-                </h3>
-                <p className="text-slate-600 text-sm line-clamp-3 mb-6 flex-grow">
-                  {post.resumo}
-                </p>
-                <div className="mt-auto">
-                  <span className="text-[var(--color-brand-blue-dark)] font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
-                    Ler mais <ArrowRight size={14} />
-                  </span>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Tipos de Conteúdo (Bento Grid) */}
