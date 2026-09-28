@@ -6,3 +6,6 @@ psycopg[binary]
 gunicorn==21.2.0
 djangorestframework-simplejwt==5.3.1
 django-allauth==0.61.1
+
+google-auth==2.28.1
+requests==2.31.0

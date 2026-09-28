@@ -152,3 +152,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 
 
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+GOOGLE_CLIENT_ID = 'seu-client-id-do-google-aqui'
+

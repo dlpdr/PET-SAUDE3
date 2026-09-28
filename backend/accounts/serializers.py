@@ -32,3 +32,10 @@ class RegisterSerializer(serializers.ModelSerializer):
             role='visitante_registrado'
         )
         return user
+
+class MonitorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'criado_por']
+        read_only_fields = ['criado_por']
+
