@@ -1,20 +1,47 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, User, Share2, Download, Tag, Heart, MessageCircle, Send } from "lucide-react";
+import { ArrowLeft, Calendar, User, Share2, Download, Tag, Heart, MessageCircle, Send, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import api, { getMediaUrl } from "@/lib/api";
 
 export default function PublicacaoDetalhe() {
   const params = useParams();
   const id = params.id;
 
+  const [post, setPost] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
   const [isLiked, setIsLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(12);
+  const [likesCount, setLikesCount] = useState(0);
   const [newComment, setNewComment] = useState("");
 
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const res = await api.get(`/publications/${id}/`);
+        setPost(res.data);
+        setIsLiked(res.data.is_liked || false);
+        setLikesCount(res.data.likes_count || 0);
+      } catch (err: any) {
+        console.error(err);
+        if (err.response?.status === 404) {
+          setError("Publicação não encontrada.");
+        } else {
+          setError("Erro ao carregar a publicação.");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    if (id) fetchPost();
+  }, [id]);
+
   const handleLike = () => {
+    // Será implementado na Fase 4 (T-08)
     setIsLiked(!isLiked);
     setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
   };
@@ -26,32 +53,38 @@ export default function PublicacaoDetalhe() {
     setNewComment("");
   };
 
-  const post = {
-    titulo: "Cartilha de Prevenção e Saúde Mental na Comunidade",
-    autor: "Maria Oliveira",
-    data: "28 de Setembro, 2026",
-    categoria: "Cartilha Educativa",
-    imagem: "https://images.unsplash.com/photo-1576091160550-2173ff9e5ee5?q=80&w=1200&auto=format&fit=crop",
-    conteudo: `
-      <p>A saúde mental tem se tornado um dos temas mais urgentes nas comunidades rurais e urbanas do Vale do São Francisco. Através deste projeto do PET Saúde, realizamos um levantamento das principais necessidades e desenvolvemos um material acessível para a população.</p>
-      
-      <h2>1. O Papel da Informação</h2>
-      <p>Muitas famílias relataram dificuldade em identificar os primeiros sinais de ansiedade e depressão. A falta de informação gera estigma e afasta os pacientes dos Postos de Saúde da Família (PSF). Nossa intervenção começou pela escuta ativa e pela criação de rodas de conversa semanais.</p>
-      
-      <h2>2. Resultados da Intervenção</h2>
-      <p>Durante os três meses de projeto, conseguimos distribuir mais de 500 exemplares físicos da cartilha, além do acesso via QR Code nos murais da Prefeitura de Afrânio e da UNIVASF. O engajamento com os agentes comunitários de saúde foi fundamental para o sucesso dessa etapa.</p>
-      
-      <blockquote>"A saúde digital não é apenas sobre aplicativos, mas sobre como a informação correta chega a quem mais precisa no momento certo." - Coordenadoria do PET.</blockquote>
-
-      <h2>3. Próximos Passos</h2>
-      <p>O material agora passará por uma revisão para inclusão de conteúdos voltados à saúde do idoso, outro grupo que demonstrou grande adesão ao projeto. Fique de olho nas próximas publicações para baixar a nova versão.</p>
-    `
+  const getDefaultImage = (categoria: string) => {
+    if (categoria?.includes("Cartilha")) return "https://images.unsplash.com/photo-1576091160550-2173ff9e5ee5?q=80&w=1200&auto=format&fit=crop";
+    if (categoria?.includes("Artigo")) return "https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=1200&auto=format&fit=crop";
+    return "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?q=80&w=1200&auto=format&fit=crop";
   };
 
-  const comentarios = [
-    { id: 1, autor: "Dr. Roberto Alves", texto: "Excelente iniciativa! O material está muito didático.", tempo: "2 dias atrás" },
-    { id: 2, autor: "Juliana Silva", texto: "Podemos usar essa cartilha no nosso posto de saúde?", tempo: "1 dia atrás" }
-  ];
+  const formatDate = (isoStr: string) => {
+    if (!isoStr) return "Sem data";
+    return new Date(isoStr).toLocaleDateString('pt-BR');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
+        <Loader2 className="animate-spin text-[var(--color-brand-blue-light)]" size={48} />
+      </div>
+    );
+  }
+
+  if (error || !post) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 text-slate-500">
+        <AlertCircle size={64} className="text-red-400 mb-4" />
+        <h1 className="text-2xl font-bold text-slate-800 mb-2">{error || "Publicação não encontrada"}</h1>
+        <Link href="/publicacoes" className="text-[var(--color-brand-blue-light)] hover:underline">Voltar para o acervo</Link>
+      </div>
+    );
+  }
+
+  const imageUrl = getMediaUrl(post.imagens?.[0]?.imagem) || getDefaultImage(post.categoria);
+  const autorNome = post.autor ? `${post.autor.first_name} ${post.autor.last_name}` : "Autor desconhecido";
+  const comentarios: any[] = []; // Limpo por enquanto até T-09
 
   return (
     <div className="flex flex-col items-center w-full min-h-screen bg-white">
@@ -59,7 +92,7 @@ export default function PublicacaoDetalhe() {
       <section className="w-full relative h-[40vh] min-h-[300px] flex items-end justify-center">
         <div 
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${post.imagem})` }}
+          style={{ backgroundImage: `url(${imageUrl})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
         
@@ -82,11 +115,11 @@ export default function PublicacaoDetalhe() {
             <div className="flex flex-wrap items-center gap-6 text-white/80 text-sm">
               <div className="flex items-center gap-2">
                 <User size={16} />
-                <span>{post.autor}</span>
+                <span>{autorNome}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar size={16} />
-                <span>{post.data}</span>
+                <span>{formatDate(post.data_publicacao || post.criado_em)}</span>
               </div>
             </div>
 
@@ -100,7 +133,7 @@ export default function PublicacaoDetalhe() {
               </button>
               <div className="flex items-center gap-2">
                 <MessageCircle size={24} />
-                <span className="font-bold">{comentarios.length}</span>
+                <span className="font-bold">{post.comments_count || 0}</span>
               </div>
             </div>
           </div>
@@ -117,14 +150,14 @@ export default function PublicacaoDetalhe() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            dangerouslySetInnerHTML={{ __html: post.conteudo }}
+            dangerouslySetInnerHTML={{ __html: post.texto }}
           />
 
-          {/* Seção de Comentários (Task 4.2) */}
+          {/* Seção de Comentários */}
           <div className="mt-16 pt-12 border-t border-slate-100">
             <h3 className="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-3">
               <MessageCircle size={28} className="text-[var(--color-brand-blue-light)]" />
-              Discussão ({comentarios.length})
+              Discussão ({post.comments_count || 0})
             </h3>
 
             {/* Form de Comentário */}
@@ -146,7 +179,7 @@ export default function PublicacaoDetalhe() {
 
             {/* Lista de Comentários */}
             <div className="flex flex-col gap-6">
-              {comentarios.map((comment) => (
+              {comentarios.length > 0 ? comentarios.map((comment: any) => (
                 <div key={comment.id} className="flex gap-4">
                   <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-100 to-orange-100 flex items-center justify-center font-bold text-slate-600 flex-shrink-0">
                     {comment.autor.charAt(0)}
@@ -159,7 +192,9 @@ export default function PublicacaoDetalhe() {
                     <p className="text-slate-600 text-sm leading-relaxed">{comment.texto}</p>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <p className="text-slate-500 text-sm">Nenhum comentário ainda. Seja o primeiro a comentar!</p>
+              )}
             </div>
           </div>
         </div>
@@ -170,7 +205,7 @@ export default function PublicacaoDetalhe() {
               <Share2 size={18} /> Compartilhar
             </button>
             
-            {post.categoria.includes("Cartilha") && (
+            {post.categoria?.includes("Cartilha") && (
               <button className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-green)] text-white rounded-xl font-medium hover:bg-emerald-700 transition-all shadow-sm">
                 <Download size={18} /> Baixar PDF
               </button>
@@ -181,9 +216,7 @@ export default function PublicacaoDetalhe() {
                 <Tag size={16} className="text-slate-400"/> Tags
               </h3>
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-white border border-slate-200 text-slate-600 text-xs rounded-lg">Saúde Mental</span>
-                <span className="px-3 py-1 bg-white border border-slate-200 text-slate-600 text-xs rounded-lg">Comunidade</span>
-                <span className="px-3 py-1 bg-white border border-slate-200 text-slate-600 text-xs rounded-lg">Prevenção</span>
+                <span className="px-3 py-1 bg-white border border-slate-200 text-slate-600 text-xs rounded-lg">{post.categoria}</span>
               </div>
             </div>
           </div>
