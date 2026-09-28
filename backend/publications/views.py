@@ -86,6 +86,12 @@ class PublicPublicationViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ['data_publicacao']
     
     def get_queryset(self):
+        from django.db.models import Q
+        user = self.request.user
+        if user.is_authenticated:
+            if user.role == 'admin':
+                return Publication.objects.all().order_by('-data_publicacao')
+            return Publication.objects.filter(Q(status='publicado') | Q(autor=user)).order_by('-data_publicacao')
         return Publication.objects.filter(status='publicado').order_by('-data_publicacao')
         
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])

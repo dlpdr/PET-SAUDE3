@@ -21,10 +21,11 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [pendingPosts, setPendingPosts] = useState<Publication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<number | null>(null);
 
   const fetchPending = async () => {
     try {
-      const response = await api.get('/publications/pending/');
+      const response = await api.get('/publications/manage/pending/');
       setPendingPosts(response.data);
     } catch (error) {
       console.error("Erro ao buscar publicações pendentes:", error);
@@ -39,6 +40,21 @@ export default function AdminDashboard() {
 
   const formatDate = (isoStr: string) => {
     return new Date(isoStr).toLocaleDateString('pt-BR');
+  };
+
+  const handleApprove = async (id: number) => {
+    if (confirm("Deseja realmente aprovar e publicar este conteúdo no site?")) {
+      setActionLoading(id);
+      try {
+        await api.post(`/publications/manage/${id}/approve/`);
+        fetchPending();
+      } catch (error) {
+        console.error("Erro ao aprovar:", error);
+        alert("Erro ao aprovar a publicação.");
+      } finally {
+        setActionLoading(null);
+      }
+    }
   };
 
   return (
@@ -110,18 +126,20 @@ export default function AdminDashboard() {
                       </p>
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">{formatDate(post.criado_em)}</td>
-                    <td className="px-6 py-4 text-right">
-                      {/* Ao invés de uma tela de revisar mockada, vamos aprovar direto por aqui pra facilitar o MVP */}
-                      <button 
-                        onClick={async () => {
-                          if (confirm("Deseja realmente aprovar e publicar este conteúdo no site?")) {
-                            await api.post(`/publications/${post.id}/approve/`);
-                            fetchPending();
-                          }
-                        }}
-                        className="inline-flex items-center gap-1 px-4 py-2 bg-green-50 text-green-700 text-sm font-medium rounded-lg hover:bg-green-100 transition-colors"
+                    <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
+                      <Link 
+                        href={`/publicacoes/${post.id}`}
+                        className="inline-flex items-center gap-1 px-4 py-2 bg-slate-50 text-[var(--color-brand-blue-light)] text-sm font-medium rounded-lg hover:bg-slate-100 transition-colors border border-slate-200"
                       >
-                        <CheckSquare size={16} /> Aprovar Direto
+                        Visualizar
+                      </Link>
+                      <button 
+                        onClick={() => handleApprove(post.id)}
+                        disabled={actionLoading === post.id}
+                        className="inline-flex items-center gap-1 px-4 py-2 bg-green-50 text-green-700 text-sm font-medium rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50"
+                      >
+                        {actionLoading === post.id ? <Loader2 size={16} className="animate-spin" /> : <CheckSquare size={16} />} 
+                        Aprovar
                       </button>
                     </td>
                   </tr>
