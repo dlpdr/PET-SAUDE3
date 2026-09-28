@@ -1,0 +1,32 @@
+# ─── PYTHON / DJANGO ───────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.Python
+venv/
+env/
+.venv/
+
+# ─── VARIÁVEIS DE AMBIENTE (NUNCA COMMITAR!) ───────────────────
+.env
+.env.*
+!.env.example
+
+# ─── DJANGO SPECIFICS ─────────────────────────────────────────
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# ─── SISTEMA OPERACIONAL ───────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
