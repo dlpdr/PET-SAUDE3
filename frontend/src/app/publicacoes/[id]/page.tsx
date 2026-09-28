@@ -269,25 +269,26 @@ export default function PublicacaoDetalhe() {
                   navigator.share({
                     title: post.titulo,
                     url: window.location.href,
-                  }).catch(console.error);
+                  }).catch(() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    alert("Link copiado para a área de transferência!");
+                  });
                 } else {
                   navigator.clipboard.writeText(window.location.href);
                   alert("Link copiado para a área de transferência!");
                 }
               }}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-blue-dark)] text-white rounded-xl font-medium hover:bg-slate-800 transition-all shadow-sm"
+              className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-blue-dark)] text-white rounded-xl font-medium hover:bg-slate-800 transition-all shadow-sm print:hidden"
             >
               <Share2 size={18} /> Compartilhar
             </button>
             
-            {post.categoria?.includes("Cartilha") && (
-              <button 
-                onClick={() => window.print()}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-green)] text-white rounded-xl font-medium hover:bg-emerald-700 transition-all shadow-sm"
-              >
-                <Download size={18} /> Baixar PDF
-              </button>
-            )}
+            <button 
+              onClick={() => window.print()}
+              className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-green)] text-white rounded-xl font-medium hover:bg-emerald-700 transition-all shadow-sm print:hidden"
+            >
+              <Download size={18} /> Baixar PDF
+            </button>
 
             <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-100">
               <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
