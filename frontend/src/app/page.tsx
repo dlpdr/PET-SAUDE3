@@ -99,15 +99,21 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-6">
           <p className="text-center text-xs font-semibold text-slate-400 mb-6 uppercase tracking-widest">Realização e Parcerias Oficiais</p>
           <div className="flex flex-wrap justify-center items-center gap-16 md:gap-32">
-            <motion.div whileHover={{ scale: 1.05 }} className="relative h-14 w-40">
-              <Image src="/logos/univasf.png" alt="UNIVASF" fill className="object-contain grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all" />
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.05 }} className="relative h-16 w-48">
-              <Image src="/logos/petsaude.png" alt="PET Saúde" fill className="object-contain" />
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.05 }} className="relative h-16 w-40">
-              <Image src="/logos/afranio.png" alt="Prefeitura de Afrânio" fill className="object-contain grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all" />
-            </motion.div>
+            <a href="https://portais.univasf.edu.br/" target="_blank" rel="noopener noreferrer">
+              <motion.div whileHover={{ scale: 1.05 }} className="relative h-14 w-40">
+                <Image src="/logos/univasf.png" alt="UNIVASF" fill className="object-contain hover:opacity-80 transition-all" />
+              </motion.div>
+            </a>
+            <a href="#" target="_blank" rel="noopener noreferrer">
+              <motion.div whileHover={{ scale: 1.05 }} className="relative h-16 w-48">
+                <Image src="/logos/petsaude.png" alt="PET Saúde" fill className="object-contain hover:opacity-80 transition-all" />
+              </motion.div>
+            </a>
+            <a href="https://afranio.pe.gov.br/" target="_blank" rel="noopener noreferrer">
+              <motion.div whileHover={{ scale: 1.05 }} className="relative h-16 w-40">
+                <Image src="/logos/afranio.png" alt="Prefeitura de Afrânio" fill className="object-contain hover:opacity-80 transition-all" />
+              </motion.div>
+            </a>
           </div>
         </div>
       </section>
