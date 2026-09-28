@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Search, Filter, Calendar, ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import api from "@/lib/api";
+import api, { getMediaUrl } from "@/lib/api";
 
 interface Publication {
   id: number;
@@ -26,7 +26,7 @@ export default function AcervoPage() {
   useEffect(() => {
     const fetchPublicPosts = async () => {
       try {
-        const res = await api.get('/publications/public/');
+        const res = await api.get('/publications/?ordering=-data_publicacao');
         setPublicPosts(res.data);
       } catch (err) {
         console.error(err);
@@ -123,7 +123,7 @@ export default function AcervoPage() {
                 <Link href={`/publicacoes/${post.id}`} className="block relative h-48 w-full overflow-hidden bg-slate-100">
                   <div 
                     className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500" 
-                    style={{ backgroundImage: `url(${post.imagens?.length > 0 ? post.imagens[0].imagem : getDefaultImage(post.categoria)})` }}
+                    style={{ backgroundImage: `url(${getMediaUrl(post.imagens?.[0]?.imagem) || getDefaultImage(post.categoria)})` }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                   <div className="absolute bottom-4 left-4">

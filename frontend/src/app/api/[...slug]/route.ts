@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 
-const BACKEND_URL = 'http://18.117.173.196/api';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://18.117.173.196/api';
 
 export async function ANY(req: NextRequest, props: { params: Promise<{ slug: string[] }> }) {
   const params = await props.params;

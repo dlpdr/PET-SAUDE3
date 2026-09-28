@@ -20,7 +20,7 @@ export default function MonitorDashboard() {
   useEffect(() => {
     const fetchMyPosts = async () => {
       try {
-        const response = await api.get('/publications/');
+        const response = await api.get('/publications/manage/?ordering=-criado_em');
         setPosts(response.data);
       } catch (error) {
         console.error("Erro ao buscar publicações", error);
