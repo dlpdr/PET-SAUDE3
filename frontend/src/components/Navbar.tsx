@@ -59,7 +59,7 @@ export default function Navbar() {
               href="/perfil" 
               className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-[var(--color-brand-blue-dark)] transition-colors px-2 py-2"
             >
-              Perfil
+              Mudar Senha
             </Link>
             <button 
               onClick={handleLogout}

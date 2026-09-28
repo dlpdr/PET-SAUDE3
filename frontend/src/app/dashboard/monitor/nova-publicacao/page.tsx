@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, UploadCloud, Save, Send, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, UploadCloud, Save, Send, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -11,6 +11,8 @@ export default function NovaPublicacao() {
   const [titulo, setTitulo] = useState("");
   const [categoria, setCategoria] = useState("");
   const [texto, setTexto] = useState("");
+  const [imagem, setImagem] = useState<File | null>(null);
+  const [descricaoImagem, setDescricaoImagem] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
@@ -25,16 +27,25 @@ export default function NovaPublicacao() {
     
     setIsSubmitting(true);
     try {
-      await api.post('/publications/', {
-        titulo,
-        categoria: categoria === 'acao' ? 'Ação Comunitária' : categoria === 'cartilha' ? 'Cartilha Educativa' : 'Artigo Acadêmico',
-        texto,
-        status
+      const formData = new FormData();
+      formData.append("titulo", titulo);
+      formData.append("categoria", categoria === 'acao' ? 'Ação Comunitária' : categoria === 'cartilha' ? 'Cartilha Educativa' : 'Artigo Acadêmico');
+      formData.append("texto", texto);
+      formData.append("status", status);
+
+      if (imagem) {
+        formData.append("novas_imagens", imagem);
+        formData.append("descricoes_imagens", descricaoImagem || "Imagem anexada");
+      }
+
+      await api.post('/publications/manage/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       });
       
       setFeedback({ type: 'success', message: "Publicação salva com sucesso! Redirecionando..." });
       
-      // Espera 1.5s para o usuário ler a mensagem antes de voltar
       setTimeout(() => {
         router.push('/dashboard/monitor');
       }, 1500);
@@ -74,7 +85,6 @@ export default function NovaPublicacao() {
 
           <form className="flex flex-col gap-6">
             
-            {/* Título e Categoria */}
             <div className="flex flex-col md:flex-row gap-6">
               <div className="flex-1 flex flex-col gap-2">
                 <label className="text-sm font-semibold text-slate-700">Título da Publicação *</label>
@@ -104,7 +114,6 @@ export default function NovaPublicacao() {
               </div>
             </div>
 
-            {/* Texto / Conteúdo */}
             <div className="flex flex-col gap-2">
               <label className="text-sm font-semibold text-slate-700">Conteúdo *</label>
               <textarea 
@@ -117,19 +126,40 @@ export default function NovaPublicacao() {
               />
             </div>
 
-            {/* Imagens */}
+            {/* Upload de Imagem */}
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-slate-700">Imagens (Opcional)</label>
-              <div className="w-full border-2 border-dashed border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer group">
-                <div className="h-12 w-12 rounded-full bg-white flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
-                  <UploadCloud size={24} className="text-[var(--color-brand-blue-light)]" />
+              <label className="text-sm font-semibold text-slate-700">Imagem (Opcional)</label>
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1 w-full border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors relative">
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={(e) => setImagem(e.target.files ? e.target.files[0] : null)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center mb-2 shadow-sm">
+                    <UploadCloud size={20} className="text-[var(--color-brand-blue-light)]" />
+                  </div>
+                  <p className="text-sm font-medium text-slate-700">
+                    {imagem ? imagem.name : "Clique para anexar imagem"}
+                  </p>
                 </div>
-                <p className="text-sm font-medium text-slate-700">Clique para fazer upload ou arraste os arquivos</p>
-                <p className="text-xs text-slate-500 mt-1">Recurso visual bloqueado nesta fase do MVP</p>
+                
+                {imagem && (
+                  <div className="flex-1 flex flex-col gap-2">
+                    <label className="text-xs font-semibold text-slate-500">Descrição da Imagem</label>
+                    <input 
+                      type="text" 
+                      value={descricaoImagem}
+                      onChange={(e) => setDescricaoImagem(e.target.value)}
+                      placeholder="Descrição acessível da imagem..." 
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)]"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Botões de Ação */}
             <div className="flex flex-col sm:flex-row justify-end gap-4 mt-6 pt-6 border-t border-slate-100">
               <button 
                 type="button"

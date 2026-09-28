@@ -56,7 +56,7 @@ export default function PerfilPage() {
       <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-6">
         <Lock size={48} className="text-slate-300 mb-4" />
         <h2 className="text-2xl font-bold text-slate-800">Acesso Negado</h2>
-        <p className="text-slate-500 mt-2">Você precisa estar logado para acessar seu perfil.</p>
+        <p className="text-slate-500 mt-2">Você precisa estar logado para acessar as configurações de segurança.</p>
         <a href="/login" className="mt-6 text-[var(--color-brand-blue-light)] hover:underline font-medium">Ir para Login</a>
       </div>
     );
@@ -71,8 +71,8 @@ export default function PerfilPage() {
             <Lock size={28} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Meu Perfil</h1>
-            <p className="text-slate-500 mt-1">Gerencie suas configurações e segurança da conta.</p>
+            <h1 className="text-2xl font-bold text-slate-800">Mudar Senha</h1>
+            <p className="text-slate-500 mt-1">Gerencie a segurança da sua conta.</p>
           </div>
         </div>
 

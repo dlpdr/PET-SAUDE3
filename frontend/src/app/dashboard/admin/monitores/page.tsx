@@ -22,6 +22,7 @@ export default function AdminMonitoresPage() {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [password, setPassword] = useState("");
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
@@ -48,23 +49,29 @@ export default function AdminMonitoresPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await api.post('/auth/monitors/', {
+      const payload: any = {
         username,
         email,
         first_name: firstName,
         last_name: lastName
-      });
+      };
+      if (password) {
+        payload.password = password;
+      }
+
+      const response = await api.post('/auth/monitors/', payload);
       
       const generatedPassword = response.data.temp_password;
       
       setFeedback({ 
         type: 'success', 
-        message: `Monitor criado com sucesso! A senha gerada para o primeiro login é: ${generatedPassword || 'Enviada por e-mail'}` 
+        message: `Monitor criado com sucesso! A senha inicial é: ${generatedPassword}` 
       });
       setUsername("");
       setEmail("");
       setFirstName("");
       setLastName("");
+      setPassword("");
       
       fetchUsers();
       
@@ -145,6 +152,15 @@ export default function AdminMonitoresPage() {
                   type="email" value={email} onChange={e => setEmail(e.target.value)}
                   className="px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)]"
                   required
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-700">Senha (Opcional - Gerada automaticamente se vazia)</label>
+                <input 
+                  type="password" value={password} onChange={e => setPassword(e.target.value)}
+                  placeholder="Defina a senha do monitor..."
+                  className="px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)]"
                 />
               </div>
 
