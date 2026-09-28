@@ -142,7 +142,9 @@ export default function AcervoPage() {
                       {post.titulo}
                     </h3>
                   </Link>
-                  <p className="text-slate-600 text-sm line-clamp-3 mb-6 flex-grow" dangerouslySetInnerHTML={{ __html: post.texto.substring(0, 150) + "..." }} />
+                  <p className="text-slate-600 text-sm line-clamp-3 mb-6 flex-grow">
+                    {post.texto.length > 150 ? post.texto.substring(0, 150) + "..." : post.texto}
+                  </p>
                   <div className="mt-auto">
                     <Link href={`/publicacoes/${post.id}`} className="text-[var(--color-brand-blue-dark)] font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
                       Ler publicação completa <ArrowRight size={14} />

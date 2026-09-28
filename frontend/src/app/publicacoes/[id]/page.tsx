@@ -205,14 +205,15 @@ export default function PublicacaoDetalhe() {
         
         <div className="flex-1">
           <motion.div 
-            className="text-slate-700 text-lg leading-relaxed space-y-6 
+            className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap
                        [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:text-slate-900 [&>h2]:mt-10 [&>h2]:mb-4
                        [&>blockquote]:border-l-4 [&>blockquote]:border-[var(--color-brand-orange)] [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:text-slate-500 [&>blockquote]:my-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            dangerouslySetInnerHTML={{ __html: post.texto }}
-          />
+          >
+            {post.texto}
+          </motion.div>
 
           {/* Seção de Comentários */}
           <div className="mt-16 pt-12 border-t border-slate-100">
