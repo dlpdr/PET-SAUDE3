@@ -292,26 +292,29 @@ export default function PublicacaoDetalhe() {
           <div className="sticky top-24 flex flex-col gap-4">
             <button 
               onClick={() => {
-                if (navigator.share) {
-                  navigator.share({
-                    title: post.titulo,
-                    url: window.location.href,
-                  }).catch(() => {
-                    navigator.clipboard.writeText(window.location.href);
+                console.log("Share clicked");
+                try {
+                  navigator.clipboard.writeText(window.location.href).then(() => {
                     alert("Link copiado para a área de transferência!");
+                  }).catch(() => {
+                    alert("Erro ao copiar o link. Copie a URL do navegador.");
                   });
-                } else {
-                  navigator.clipboard.writeText(window.location.href);
-                  alert("Link copiado para a área de transferência!");
+                } catch (e) {
+                  alert("Erro: Copie a URL do navegador.");
                 }
               }}
               className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-blue-dark)] text-white rounded-xl font-medium hover:bg-slate-800 transition-all shadow-sm print:hidden"
             >
-              <Share2 size={18} /> Compartilhar
+              <Share2 size={18} /> Copiar Link
             </button>
             
             <button 
-              onClick={() => window.print()}
+              onClick={() => {
+                console.log("Print clicked");
+                setTimeout(() => {
+                  window.print();
+                }, 100);
+              }}
               className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-green)] text-white rounded-xl font-medium hover:bg-emerald-700 transition-all shadow-sm print:hidden"
             >
               <Download size={18} /> Baixar PDF
