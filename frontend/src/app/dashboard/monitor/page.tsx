@@ -117,7 +117,7 @@ export default function MonitorDashboard() {
                     <td className="px-6 py-4">{getStatusBadge(post.status)}</td>
                     <td className="px-6 py-4 text-right">
                       <Link 
-                        href={`/publicacoes/${post.id}`}
+                        href={post.status === "rascunho" || post.status === "rejeitado" ? `/dashboard/monitor/editar-publicacao/${post.id}` : `/publicacoes/${post.id}`}
                         className="text-[var(--color-brand-blue-light)] hover:text-blue-800 text-sm font-medium transition-colors"
                       >
                         {post.status === "rascunho" || post.status === "rejeitado" ? "Editar" : "Visualizar"}
