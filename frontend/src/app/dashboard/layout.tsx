@@ -35,7 +35,7 @@ export default function DashboardLayout({
 
   const adminNavItems = [
     { name: "Fila de Aprovação", href: "/dashboard/admin", icon: CheckSquare },
-    // Temporariamente apontando para a página pública para MVP
+    { name: "Gerenciar Monitores", href: "/dashboard/admin/monitores", icon: Users },
     { name: "Acervo Completo", href: "/publicacoes", icon: Library },
   ];
 
