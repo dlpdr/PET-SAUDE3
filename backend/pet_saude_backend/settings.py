@@ -80,8 +80,12 @@ WSGI_APPLICATION = 'pet_saude_backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'pet_saude',
+        'USER': 'pet_saude',
+        'PASSWORD': 'pet_saude_pass',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -145,5 +149,6 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
+
 
 
