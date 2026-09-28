@@ -40,10 +40,32 @@ export default function PublicacaoDetalhe() {
     if (id) fetchPost();
   }, [id]);
 
-  const handleLike = () => {
-    // Será implementado na Fase 4 (T-08)
-    setIsLiked(!isLiked);
-    setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
+  const handleLike = async () => {
+    // Requer autenticação
+    const token = document.cookie.includes('access_token');
+    if (!token) {
+      alert("Você precisa fazer login para curtir.");
+      return;
+    }
+
+    const wasLiked = isLiked;
+    // Otimista: atualiza a interface instantaneamente
+    setIsLiked(!wasLiked);
+    setLikesCount(prev => wasLiked ? prev - 1 : prev + 1);
+
+    try {
+      if (wasLiked) {
+        await api.post(`/publications/${id}/unlike/`);
+      } else {
+        await api.post(`/publications/${id}/like/`);
+      }
+    } catch (error) {
+      console.error("Erro ao curtir:", error);
+      // Reverte se der erro
+      setIsLiked(wasLiked);
+      setLikesCount(prev => wasLiked ? prev + 1 : prev - 1);
+      alert("Erro ao registrar curtida.");
+    }
   };
 
   const handleCommentSubmit = (e: React.FormEvent) => {
