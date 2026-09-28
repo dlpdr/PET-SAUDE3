@@ -32,7 +32,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="max-w-6xl mx-auto glass rounded-2xl px-6 py-3 flex items-center justify-between transition-all duration-300">
+    <nav className="max-w-6xl mx-auto glass rounded-2xl px-6 py-3 flex items-center justify-between transition-all duration-300 print:hidden">
       <div className="flex items-center gap-4">
         <Link href="/" className="h-8 w-24 relative block cursor-pointer">
           <Image src="/logos/petsaude.png" alt="PET Saúde Logo" fill className="object-contain object-left" />

@@ -31,7 +31,7 @@ export default function RootLayout({
           {children}
         </main>
 
-        <footer className="bg-white border-t border-slate-100 mt-20 py-12">
+        <footer className="bg-white border-t border-slate-100 mt-20 py-12 print:hidden">
           <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
             <div className="flex flex-col gap-4">
               <h3 className="font-semibold text-lg text-[var(--color-brand-blue-dark)]">PET Saúde</h3>

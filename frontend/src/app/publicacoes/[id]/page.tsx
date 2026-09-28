@@ -133,19 +133,19 @@ export default function PublicacaoDetalhe() {
           <>
             <button 
               onClick={prevImage}
-              className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/30 hover:bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all z-20 backdrop-blur-sm"
+              className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/30 hover:bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all z-20 backdrop-blur-sm print:hidden"
             >
               <ChevronLeft size={24} />
             </button>
             <button 
               onClick={nextImage}
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/30 hover:bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all z-20 backdrop-blur-sm"
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/30 hover:bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all z-20 backdrop-blur-sm print:hidden"
             >
               <ChevronRight size={24} />
             </button>
             
             {/* Dots */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20 print:hidden">
               {imagensArray.map((_: any, idx: number) => (
                 <button 
                   key={idx}
@@ -158,7 +158,7 @@ export default function PublicacaoDetalhe() {
         )}
         
         <div className="w-full max-w-4xl mx-auto px-6 relative z-10 pb-12">
-          <Link href="/publicacoes" className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors mb-6 text-sm font-medium">
+          <Link href="/publicacoes" className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors mb-6 text-sm font-medium print:hidden">
             <ArrowLeft size={16} /> Voltar para o Acervo
           </Link>
           
@@ -184,7 +184,7 @@ export default function PublicacaoDetalhe() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4 text-white">
+            <div className="flex items-center gap-4 text-white print:hidden">
               <button 
                 onClick={handleLike}
                 className="flex items-center gap-2 hover:scale-110 transition-transform"
@@ -216,7 +216,7 @@ export default function PublicacaoDetalhe() {
           </motion.div>
 
           {/* Seção de Comentários */}
-          <div className="mt-16 pt-12 border-t border-slate-100">
+          <div className="mt-16 pt-12 border-t border-slate-100 print:hidden">
             <h3 className="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-3">
               <MessageCircle size={28} className="text-[var(--color-brand-blue-light)]" />
               Discussão ({post.comments_count || 0})
@@ -261,14 +261,30 @@ export default function PublicacaoDetalhe() {
           </div>
         </div>
 
-        <div className="w-full md:w-64 flex-shrink-0">
+        <div className="w-full md:w-64 flex-shrink-0 print:hidden">
           <div className="sticky top-24 flex flex-col gap-4">
-            <button className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-blue-dark)] text-white rounded-xl font-medium hover:bg-slate-800 transition-all shadow-sm">
+            <button 
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: post.titulo,
+                    url: window.location.href,
+                  }).catch(console.error);
+                } else {
+                  navigator.clipboard.writeText(window.location.href);
+                  alert("Link copiado para a área de transferência!");
+                }
+              }}
+              className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-blue-dark)] text-white rounded-xl font-medium hover:bg-slate-800 transition-all shadow-sm"
+            >
               <Share2 size={18} /> Compartilhar
             </button>
             
             {post.categoria?.includes("Cartilha") && (
-              <button className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-green)] text-white rounded-xl font-medium hover:bg-emerald-700 transition-all shadow-sm">
+              <button 
+                onClick={() => window.print()}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-green)] text-white rounded-xl font-medium hover:bg-emerald-700 transition-all shadow-sm"
+              >
                 <Download size={18} /> Baixar PDF
               </button>
             )}
