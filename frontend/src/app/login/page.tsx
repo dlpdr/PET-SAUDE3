@@ -21,8 +21,8 @@ export default function LoginPage() {
 
     try {
       // Endpoint que configuramos na AWS para JWT
-      const response = await api.post('/accounts/login/', {
-        email,
+      const response = await api.post('/auth/login/', {
+        username: email, // O backend Django espera 'username'
         password
       });
 
@@ -87,10 +87,10 @@ export default function LoginPage() {
               <Mail size={18} />
             </div>
             <input 
-              type="email" 
+              type="text" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Seu e-mail acadêmico" 
+              placeholder="E-mail ou nome de usuário (ex: admin)" 
               className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all"
               required
             />
