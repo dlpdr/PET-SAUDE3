@@ -18,6 +18,7 @@ export default function PublicacaoDetalhe() {
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [newComment, setNewComment] = useState("");
+  const [comentarios, setComentarios] = useState<any[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
@@ -38,7 +39,20 @@ export default function PublicacaoDetalhe() {
         setIsLoading(false);
       }
     };
-    if (id) fetchPost();
+
+    const fetchComments = async () => {
+      try {
+        const res = await api.get(`/publications/${id}/comments/`);
+        setComentarios(res.data);
+      } catch (err) {
+        console.error("Erro ao buscar comentários:", err);
+      }
+    };
+
+    if (id) {
+      fetchPost();
+      fetchComments();
+    }
   }, [id]);
 
   const handleLike = async () => {
@@ -69,11 +83,24 @@ export default function PublicacaoDetalhe() {
     }
   };
 
-  const handleCommentSubmit = (e: React.FormEvent) => {
+  const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
-    alert("Comentário enviado! (Simulação da integração na Fase 4)");
-    setNewComment("");
+
+    const token = document.cookie.includes('access_token');
+    if (!token) {
+      alert("Você precisa fazer login para comentar.");
+      return;
+    }
+
+    try {
+      const res = await api.post(`/publications/${id}/comments/`, { texto: newComment });
+      setComentarios(prev => [res.data, ...prev]);
+      setNewComment("");
+    } catch (error) {
+      console.error("Erro ao comentar:", error);
+      alert("Erro ao enviar o comentário.");
+    }
   };
 
   const getDefaultImage = (categoria: string) => {
