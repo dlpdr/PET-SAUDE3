@@ -19,6 +19,17 @@ export default function PublicacaoDetalhe() {
   const [likesCount, setLikesCount] = useState(0);
   const [newComment, setNewComment] = useState("");
 
+  const [comentarios, setComentarios] = useState<any[]>([]);
+
+  const fetchComments = async () => {
+    try {
+      const res = await api.get(`/publications/${id}/comments/`);
+      setComentarios(res.data);
+    } catch (err) {
+      console.error("Erro ao buscar comentários", err);
+    }
+  };
+
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -37,7 +48,10 @@ export default function PublicacaoDetalhe() {
         setIsLoading(false);
       }
     };
-    if (id) fetchPost();
+    if (id) {
+      fetchPost();
+      fetchComments();
+    }
   }, [id]);
 
   const handleLike = async () => {
@@ -68,11 +82,25 @@ export default function PublicacaoDetalhe() {
     }
   };
 
-  const handleCommentSubmit = (e: React.FormEvent) => {
+  const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
-    alert("Comentário enviado! (Simulação da integração na Fase 4)");
-    setNewComment("");
+
+    const token = document.cookie.includes('access_token');
+    if (!token) {
+      alert("Você precisa fazer login para comentar.");
+      return;
+    }
+
+    try {
+      await api.post(`/publications/${id}/comments/`, { texto: newComment });
+      setNewComment("");
+      fetchComments(); // Recarrega a lista de comentários
+      setPost((prev: any) => ({ ...prev, comments_count: prev.comments_count + 1 }));
+    } catch (error) {
+      console.error("Erro ao enviar comentário:", error);
+      alert("Erro ao enviar comentário.");
+    }
   };
 
   const getDefaultImage = (categoria: string) => {
@@ -106,7 +134,7 @@ export default function PublicacaoDetalhe() {
 
   const imageUrl = getMediaUrl(post.imagens?.[0]?.imagem) || getDefaultImage(post.categoria);
   const autorNome = post.autor ? `${post.autor.first_name} ${post.autor.last_name}` : "Autor desconhecido";
-  const comentarios: any[] = []; // Limpo por enquanto até T-09
+
 
   return (
     <div className="flex flex-col items-center w-full min-h-screen bg-white">
@@ -201,20 +229,23 @@ export default function PublicacaoDetalhe() {
 
             {/* Lista de Comentários */}
             <div className="flex flex-col gap-6">
-              {comentarios.length > 0 ? comentarios.map((comment: any) => (
-                <div key={comment.id} className="flex gap-4">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-100 to-orange-100 flex items-center justify-center font-bold text-slate-600 flex-shrink-0">
-                    {comment.autor.charAt(0)}
-                  </div>
-                  <div className="flex-1 bg-slate-50 p-4 rounded-2xl rounded-tl-none border border-slate-100">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-slate-800 text-sm">{comment.autor}</span>
-                      <span className="text-xs text-slate-400">{comment.tempo}</span>
+              {comentarios.length > 0 ? comentarios.map((comment: any) => {
+                const commentAutor = comment.autor ? `${comment.autor.first_name} ${comment.autor.last_name}` : "Usuário";
+                return (
+                  <div key={comment.id} className="flex gap-4">
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-100 to-orange-100 flex items-center justify-center font-bold text-slate-600 flex-shrink-0 uppercase">
+                      {commentAutor.charAt(0)}
                     </div>
-                    <p className="text-slate-600 text-sm leading-relaxed">{comment.texto}</p>
+                    <div className="flex-1 bg-slate-50 p-4 rounded-2xl rounded-tl-none border border-slate-100">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-bold text-slate-800 text-sm">{commentAutor}</span>
+                        <span className="text-xs text-slate-400">{formatDate(comment.criado_em)}</span>
+                      </div>
+                      <p className="text-slate-600 text-sm leading-relaxed">{comment.texto}</p>
+                    </div>
                   </div>
-                </div>
-              )) : (
+                );
+              }) : (
                 <p className="text-slate-500 text-sm">Nenhum comentário ainda. Seja o primeiro a comentar!</p>
               )}
             </div>
