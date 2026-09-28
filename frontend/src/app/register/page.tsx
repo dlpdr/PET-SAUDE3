@@ -1,11 +1,64 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Mail, Lock, User, ArrowRight } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import api from "@/lib/api";
 
 export default function RegisterPage() {
+  const router = useRouter();
+  
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFeedback(null);
+
+    if (password !== passwordConfirm) {
+      setFeedback({ type: 'error', message: 'As senhas não coincidem.' });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await api.post('/auth/register/', {
+        first_name: firstName,
+        last_name: lastName,
+        username,
+        email,
+        password,
+        password_confirm: passwordConfirm
+      });
+      
+      setFeedback({ type: 'success', message: 'Conta criada com sucesso! Redirecionando para login...' });
+      
+      setTimeout(() => {
+        router.push('/login');
+      }, 1500);
+      
+    } catch (error: any) {
+      console.error(error);
+      const errorMsg = error.response?.data?.username?.[0] || 
+                       error.response?.data?.email?.[0] || 
+                       error.response?.data?.password?.[0] ||
+                       "Erro ao criar conta. Verifique os dados.";
+      setFeedback({ type: 'error', message: errorMsg });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] w-full px-6 my-12">
       
@@ -27,18 +80,24 @@ export default function RegisterPage() {
         </div>
 
         <h1 className="text-2xl font-bold text-slate-900 mb-2">Crie sua conta</h1>
-        <p className="text-slate-500 text-sm mb-8 text-center">Faça parte da nossa plataforma acadêmica e tenha acesso às atividades.</p>
+        <p className="text-slate-500 text-sm mb-6 text-center">Faça parte da nossa plataforma acadêmica e tenha acesso às atividades.</p>
 
-        <form className="w-full flex flex-col gap-4">
+        {feedback && (
+          <div className={`w-full mb-6 p-4 rounded-xl flex items-start gap-3 text-sm ${feedback.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+            {feedback.type === 'success' ? <CheckCircle2 size={18} className="mt-0.5 shrink-0" /> : <AlertCircle size={18} className="mt-0.5 shrink-0" />}
+            <span className="font-medium">{feedback.message}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleRegister} className="w-full flex flex-col gap-4">
           <div className="flex gap-4">
             <div className="relative flex-1">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                <User size={18} />
-              </div>
               <input 
                 type="text" 
                 placeholder="Nome" 
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all"
+                value={firstName}
+                onChange={e => setFirstName(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all"
                 required
               />
             </div>
@@ -46,10 +105,26 @@ export default function RegisterPage() {
               <input 
                 type="text" 
                 placeholder="Sobrenome" 
+                value={lastName}
+                onChange={e => setLastName(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all"
                 required
               />
             </div>
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <User size={18} />
+            </div>
+            <input 
+              type="text" 
+              placeholder="Nome de Usuário (ex: joao123)" 
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all"
+              required
+            />
           </div>
 
           <div className="relative">
@@ -59,6 +134,8 @@ export default function RegisterPage() {
             <input 
               type="email" 
               placeholder="E-mail (preferencialmente acadêmico)" 
+              value={email}
+              onChange={e => setEmail(e.target.value)}
               className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all"
               required
             />
@@ -71,6 +148,8 @@ export default function RegisterPage() {
             <input 
               type="password" 
               placeholder="Sua senha" 
+              value={password}
+              onChange={e => setPassword(e.target.value)}
               className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all"
               required
             />
@@ -83,6 +162,8 @@ export default function RegisterPage() {
             <input 
               type="password" 
               placeholder="Confirme a senha" 
+              value={passwordConfirm}
+              onChange={e => setPasswordConfirm(e.target.value)}
               className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all"
               required
             />
@@ -90,25 +171,12 @@ export default function RegisterPage() {
 
           <button 
             type="submit"
-            className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-orange)] text-white rounded-xl font-medium hover:bg-orange-600 transition-all hover:shadow-lg"
+            disabled={isSubmitting}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-orange)] text-white rounded-xl font-medium hover:bg-orange-600 transition-all hover:shadow-lg disabled:opacity-50"
           >
-            Cadastrar <ArrowRight size={18} />
+            {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <>Cadastrar <ArrowRight size={18} /></>}
           </button>
         </form>
-
-        <div className="w-full flex items-center gap-4 my-6">
-          <div className="h-px bg-slate-200 flex-1" />
-          <span className="text-xs text-slate-400 uppercase tracking-wider">ou</span>
-          <div className="h-px bg-slate-200 flex-1" />
-        </div>
-
-        <button 
-          type="button"
-          className="w-full flex items-center justify-center gap-3 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-slate-50 transition-all shadow-sm"
-        >
-          <Image src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width={20} height={20} />
-          Cadastrar com Google
-        </button>
 
         <p className="mt-8 text-sm text-slate-500">
           Já possui uma conta?{" "}
