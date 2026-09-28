@@ -1,8 +1,8 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-// Tenta pegar a URL da variável de ambiente, se não houver, usa o IP da AWS
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://18.117.173.196/api';
+// Usamos um proxy do Next.js configurado no next.config.ts para evitar erros de CORS e Mixed Content (HTTPS -> HTTP)
+const API_URL = '/api';
 
 const api = axios.create({
   baseURL: API_URL,
