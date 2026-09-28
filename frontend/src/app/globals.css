@@ -16,19 +16,19 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%; /* #FAFAFA */
-    --foreground: 222.2 84% 4.9%; /* #111827 */
+    --background: 0 0% 98%;
+    --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 211 100% 27%; /* Dark blue from Afrânio/PET */
+    --primary: 211 100% 27%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 24 81% 52%; /* Orange from PET */
+    --secondary: 24 81% 52%;
     --secondary-foreground: 210 40% 98%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 147 100% 31%; /* Green from Afrânio */
+    --accent: 147 100% 31%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
