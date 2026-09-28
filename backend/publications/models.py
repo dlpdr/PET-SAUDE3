@@ -31,3 +31,24 @@ class PublicationImage(models.Model):
 
     def __str__(self):
         return f"Imagem da publicação: {self.publicacao.titulo}"
+
+class Comment(models.Model):
+    publicacao = models.ForeignKey(Publication, on_delete=models.CASCADE, related_name='comentarios')
+    autor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comentarios')
+    texto = models.TextField()
+    criado_em = models.DateTimeField(auto_now_add=True)
+    ativo = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Comentário de {self.autor.first_name} em {self.publicacao.titulo}"
+
+class Like(models.Model):
+    publicacao = models.ForeignKey(Publication, on_delete=models.CASCADE, related_name='curtidas')
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='curtidas')
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('publicacao', 'usuario')
+
+    def __str__(self):
+        return f"Curtida de {self.usuario.first_name} em {self.publicacao.titulo}"

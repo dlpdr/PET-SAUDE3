@@ -4,8 +4,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Publication
-from .serializers import PublicationSerializer
+from .models import Publication, Like, Comment
+from .serializers import PublicationSerializer, CommentSerializer
 from .permissions import IsAuthorOrAdmin, IsAdminUserRole
 
 class PublicationViewSet(viewsets.ModelViewSet):
@@ -87,3 +87,46 @@ class PublicPublicationViewSet(viewsets.ReadOnlyModelViewSet):
     
     def get_queryset(self):
         return Publication.objects.filter(status='publicado').order_by('-data_publicacao')
+        
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def like(self, request, pk=None):
+        publication = self.get_object()
+        like, created = Like.objects.get_or_create(publicacao=publication, usuario=request.user)
+        if not created:
+            return Response({'status': 'Você já curtiu esta publicação.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'status': 'Curtida adicionada.'})
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def unlike(self, request, pk=None):
+        publication = self.get_object()
+        try:
+            like = Like.objects.get(publicacao=publication, usuario=request.user)
+            like.delete()
+            return Response({'status': 'Curtida removida.'})
+        except Like.DoesNotExist:
+            return Response({'status': 'Curtida não encontrada.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['get', 'post'], permission_classes=[AllowAny])
+    def comments(self, request, pk=None):
+        publication = self.get_object()
+        
+        if request.method == 'GET':
+            comments = publication.comentarios.filter(ativo=True).order_by('-criado_em')
+            serializer = CommentSerializer(comments, many=True)
+            return Response(serializer.data)
+            
+        elif request.method == 'POST':
+            if not request.user.is_authenticated:
+                return Response({'error': 'Você precisa estar logado para comentar.'}, status=status.HTTP_401_UNAUTHORIZED)
+                
+            texto = request.data.get('texto')
+            if not texto:
+                return Response({'error': 'O texto do comentário é obrigatório.'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            comment = Comment.objects.create(
+                publicacao=publication,
+                autor=request.user,
+                texto=texto
+            )
+            serializer = CommentSerializer(comment)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
