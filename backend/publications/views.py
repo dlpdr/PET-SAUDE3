@@ -24,10 +24,12 @@ class PublicationViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
-        status_inicial = 'pendente' if user.role == 'monitor' else 'publicado'
+        req_status = self.request.data.get('status')
         
-        if self.request.data.get('status') == 'rascunho':
-            status_inicial = 'rascunho'
+        if req_status in ['rascunho', 'pendente']:
+            status_inicial = req_status
+        else:
+            status_inicial = 'pendente' if user.role == 'monitor' else 'publicado'
 
         data_publicacao = timezone.now() if status_inicial == 'publicado' else None
 
