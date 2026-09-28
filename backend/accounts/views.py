@@ -1,4 +1,4 @@
-﻿from rest_framework import generics
+from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from .models import User
 from .serializers import RegisterSerializer
@@ -26,21 +26,33 @@ class MonitorListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         return User.objects.filter(role='monitor')
 
-    def perform_create(self, serializer):
-        temp_password = secrets.token_urlsafe(10)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        temp_password = secrets.token_urlsafe(8)
         user = serializer.save(
             role='monitor',
             criado_por=self.request.user
         )
         user.set_password(temp_password)
         user.save()
-        send_mail(
-            'Sua conta de Monitor no PET Saúde',
-            f'Olá {user.first_name},\\n\\nSua conta de monitor foi criada com sucesso.\\nSua senha temporária é: {temp_password}\\n\\nFaça login e altere sua senha.',
-            'admin@petsaude.com',
-            [user.email],
-            fail_silently=False,
-        )
+        
+        try:
+            send_mail(
+                'Sua conta de Monitor no PET Saúde',
+                f'Olá {user.first_name},\n\nSua conta de monitor foi criada com sucesso.\nSua senha temporária é: {temp_password}\n\nFaça login e altere sua senha.',
+                'admin@petsaude.com',
+                [user.email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass
+            
+        headers = self.get_success_headers(serializer.data)
+        response_data = serializer.data
+        response_data['temp_password'] = temp_password
+        return Response(response_data, status=201, headers=headers)
 
 class GoogleLoginView(APIView):
     permission_classes = []
@@ -78,5 +90,3 @@ class GoogleLoginView(APIView):
             })
         except ValueError:
             return Response({'error': 'Invalid token'}, status=400)
-
-

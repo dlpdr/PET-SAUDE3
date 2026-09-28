@@ -47,14 +47,19 @@ export default function AdminMonitoresPage() {
     setIsSubmitting(true);
 
     try {
-      await api.post('/auth/monitors/', {
+      const response = await api.post('/auth/monitors/', {
         username,
         email,
         first_name: firstName,
         last_name: lastName
       });
       
-      setFeedback({ type: 'success', message: "Monitor criado com sucesso! Uma senha temporária foi enviada para o e-mail." });
+      const generatedPassword = response.data.temp_password;
+      
+      setFeedback({ 
+        type: 'success', 
+        message: `Monitor criado com sucesso! A senha gerada para o primeiro login é: ${generatedPassword || 'Enviada por e-mail'}` 
+      });
       setUsername("");
       setEmail("");
       setFirstName("");
