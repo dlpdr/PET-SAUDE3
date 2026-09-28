@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import RegisterView, MonitorListCreateView, GoogleLoginView
+from .views import RegisterView, MonitorListCreateView, GoogleLoginView, ChangePasswordView
 from .serializers import CustomTokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
@@ -12,5 +12,6 @@ urlpatterns = [
     path('login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('monitors/', MonitorListCreateView.as_view(), name='monitors'),
+    path('change-password/', ChangePasswordView.as_view(), name='change_password'),
     path('google/', GoogleLoginView.as_view(), name='google_login'),
 ]
