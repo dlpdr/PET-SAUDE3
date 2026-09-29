@@ -87,12 +87,12 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <Link href="#publicacoes" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--color-brand-blue-dark)] text-white rounded-full font-medium hover:bg-slate-800 transition-all hover:shadow-[0_0_20px_rgba(28,58,90,0.3)] hover:-translate-y-1">
-            Ver Publicações
+          <Link href="/publicacoes" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--color-brand-blue-dark)] text-white rounded-full font-medium hover:bg-slate-800 transition-all hover:shadow-[0_0_20px_rgba(28,58,90,0.3)] hover:-translate-y-1">
+            Explorar o Acervo
             <ArrowRight size={18} />
           </Link>
-          <Link href="#tipos" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-slate-700 border border-slate-200 rounded-full font-medium hover:bg-slate-50 hover:border-slate-300 transition-all">
-            Conhecer o Acervo
+          <Link href="/sobre" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-slate-700 border border-slate-200 rounded-full font-medium hover:bg-slate-50 hover:border-slate-300 transition-all">
+            Conhecer o Projeto
           </Link>
         </motion.div>
       </section>

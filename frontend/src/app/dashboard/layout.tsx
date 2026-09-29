@@ -90,7 +90,14 @@ export default function DashboardLayout({
           </Link>
         </div>
 
-        <div className="p-4 border-t border-slate-100">
+        <div className="p-4 border-t border-slate-100 flex flex-col gap-1">
+          <Link 
+            href="/perfil"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition-all"
+          >
+            <Users size={18} />
+            <span className="font-medium text-sm">Mudar Senha</span>
+          </Link>
           <button 
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all"

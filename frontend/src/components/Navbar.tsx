@@ -49,8 +49,7 @@ export default function Navbar() {
       <div id="public-navigation" onClick={() => setMenuOpen(false)} className={`${menuOpen ? 'flex' : 'hidden'} order-last w-full flex-wrap md:order-none md:w-auto md:flex items-center gap-4 text-sm font-medium text-[var(--color-brand-blue-dark)]`}>
         <Link href="/" className="hover:text-[var(--color-brand-orange)] transition-colors">Início</Link>
         <Link href="/sobre" className="hover:text-[var(--color-brand-orange)] transition-colors">Sobre</Link>
-        <Link href="/publicacoes" className="hover:text-[var(--color-brand-orange)] transition-colors">Atividades</Link>
-        <Link href="/#parceiros" className="hover:text-[var(--color-brand-orange)] transition-colors">Parceiros</Link>
+        <Link href="/publicacoes" className="hover:text-[var(--color-brand-orange)] transition-colors">Acervo</Link>
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-2">
@@ -61,12 +60,6 @@ export default function Navbar() {
               className="flex items-center gap-2 text-sm font-medium bg-slate-100 text-[var(--color-brand-blue-dark)] px-4 py-2 rounded-full hover:bg-slate-200 transition-colors"
             >
               <LayoutDashboard size={16} /> Painel
-            </Link>
-            <Link 
-              href="/perfil" 
-              className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-[var(--color-brand-blue-dark)] transition-colors px-2 py-2"
-            >
-              Mudar Senha
             </Link>
             <button 
               onClick={handleLogout}
