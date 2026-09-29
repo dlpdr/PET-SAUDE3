@@ -56,11 +56,11 @@ export default function NovaPublicacao() {
         router.push(`/dashboard/${role}`);
       }, 1500);
 
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error(error);
       setFeedback({ 
         type: 'error', 
-        message: getApiErrorMessage(error, "Erro ao salvar a publicação. Verifique os dados e tente novamente.")
+        message: error.response?.data ? JSON.stringify(error.response.data) : error.message
       });
     } finally {
       setIsSubmitting(false);
