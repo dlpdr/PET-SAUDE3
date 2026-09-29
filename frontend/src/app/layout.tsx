@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
+import Link from "next/link";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -36,6 +37,7 @@ export default function RootLayout({
             <div className="flex flex-col gap-4">
               <h3 className="font-semibold text-lg text-[var(--color-brand-blue-dark)]">PET Saúde</h3>
               <p className="text-sm text-slate-500">Informação e Saúde Digital transformando a realidade acadêmica e comunitária.</p>
+              <Link href="/sobre" className="text-sm text-blue-700 hover:underline">Sobre o PET Saúde</Link>
             </div>
             
             <div className="flex justify-center gap-8">

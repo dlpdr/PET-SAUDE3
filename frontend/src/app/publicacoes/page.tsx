@@ -5,45 +5,46 @@ import { Search, Filter, Calendar, ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import api, { getMediaUrl } from "@/lib/api";
-
-interface Publication {
-  id: number;
-  titulo: string;
-  texto: string;
-  categoria: string;
-  data_publicacao: string;
-  imagens: any[];
-}
+import type { PublicationSummary, PaginatedResponse } from "@/lib/types";
 
 export default function AcervoPage() {
   const [activeCategory, setActiveCategory] = useState("Todos");
   const [searchTerm, setSearchTerm] = useState("");
-  const [publicPosts, setPublicPosts] = useState<Publication[]>([]);
+  const [publicPosts, setPublicPosts] = useState<PublicationSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [page, setPage] = useState(1);
+  const [count, setCount] = useState(0);
+  const [error, setError] = useState("");
+  const [retry, setRetry] = useState(0);
   const categories = ["Todos", "Ação Comunitária", "Cartilha Educativa", "Artigo Acadêmico"];
 
   useEffect(() => {
-    const fetchPublicPosts = async () => {
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      setIsLoading(true);
+      setError("");
       try {
-        const res = await api.get('/publications/?ordering=-data_publicacao');
-        setPublicPosts(res.data);
-      } catch (err) {
-        console.error(err);
+        const res = await api.get<PaginatedResponse<PublicationSummary> | PublicationSummary[]>('/publications/', {
+          params: { page, ordering: '-data_publicacao', search: searchTerm.trim(), ...(activeCategory !== 'Todos' ? { categoria: activeCategory } : {}) },
+          signal: controller.signal,
+        });
+        if (controller.signal.aborted) return;
+        const data = res.data;
+        setPublicPosts(Array.isArray(data) ? data.slice((page - 1) * 9, page * 9) : data.results);
+        setCount(Array.isArray(data) ? data.length : data.count);
+      } catch {
+        if (!controller.signal.aborted) setError('Não foi possível carregar as publicações.');
       } finally {
-        setIsLoading(false);
+        if (!controller.signal.aborted) setIsLoading(false);
       }
-    };
-    fetchPublicPosts();
-  }, []);
+    }, 250);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [page, activeCategory, searchTerm, retry]);
 
-  const filteredPosts = publicPosts.filter(post => {
-    const matchesCategory = activeCategory === "Todos" || post.categoria === activeCategory;
-    const matchesSearch = post.titulo.toLowerCase().includes(searchTerm.toLowerCase()) || post.texto.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const filteredPosts = publicPosts;
 
-  const formatDate = (isoStr: string) => {
+  const formatDate = (isoStr: string | null) => {
     if (!isoStr) return "Sem data";
     return new Date(isoStr).toLocaleDateString('pt-BR');
   };
@@ -74,7 +75,7 @@ export default function AcervoPage() {
             <input 
               type="text" 
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
               placeholder="Buscar por título, palavra-chave ou autor..." 
               className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white text-slate-800 shadow-xl focus:outline-none focus:ring-4 focus:ring-[var(--color-brand-blue-light)] transition-all"
             />
@@ -92,7 +93,7 @@ export default function AcervoPage() {
             {categories.map((cat) => (
               <button
                 key={cat}
-                onClick={() => setActiveCategory(cat)}
+                onClick={() => { setActiveCategory(cat); setPage(1); }}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                   activeCategory === cat 
                     ? "bg-[var(--color-brand-blue-light)] text-white shadow-md" 
@@ -106,7 +107,7 @@ export default function AcervoPage() {
         </div>
 
         {/* Grid de Publicações */}
-        {isLoading ? (
+        {error ? <div role="alert" className="p-8 text-center text-red-700">{error} <button onClick={() => setRetry(value => value + 1)} className="underline">Tentar novamente</button></div> : isLoading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="animate-spin text-[var(--color-brand-blue-light)]" size={48} />
           </div>
@@ -156,16 +157,21 @@ export default function AcervoPage() {
           </div>
         )}
         
-        {!isLoading && filteredPosts.length === 0 && (
+        {!error && !isLoading && filteredPosts.length === 0 && (
           <div className="w-full py-20 flex flex-col items-center text-center text-slate-500">
             <Search size={48} className="text-slate-300 mb-4" />
             <p className="text-lg font-medium">Nenhuma publicação encontrada.</p>
-            <button onClick={() => {setActiveCategory("Todos"); setSearchTerm("");}} className="mt-4 text-[var(--color-brand-blue-light)] hover:underline font-medium">
+            <button onClick={() => {setActiveCategory("Todos"); setSearchTerm(""); setPage(1);}} className="mt-4 text-[var(--color-brand-blue-light)] hover:underline font-medium">
               Limpar filtros
             </button>
           </div>
         )}
 
+        {!error && count > 9 && <nav aria-label="Paginação" className="mt-8 flex items-center justify-center gap-6">
+          <button disabled={isLoading || page === 1} onClick={() => setPage(value => value - 1)} className="rounded-lg border px-4 py-2 disabled:opacity-40">Página anterior</button>
+          <span aria-live="polite">Página {page} de {Math.ceil(count / 9)}</span>
+          <button disabled={isLoading || page >= Math.ceil(count / 9)} onClick={() => setPage(value => value + 1)} className="rounded-lg border px-4 py-2 disabled:opacity-40">Próxima página</button>
+        </nav>}
       </section>
     </div>
   );

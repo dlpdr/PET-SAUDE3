@@ -5,11 +5,9 @@ import { Mail, Lock, User, ArrowRight, Loader2, CheckCircle2, AlertCircle } from
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import api from "@/lib/api";
+import api, { getApiErrorMessage } from "@/lib/api";
 
 export default function RegisterPage() {
-  const router = useRouter();
   
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -41,18 +39,13 @@ export default function RegisterPage() {
         password_confirm: passwordConfirm
       });
       
-      setFeedback({ type: 'success', message: 'Conta criada com sucesso! Redirecionando para login...' });
+      setFeedback({ type: 'success', message: 'Conta criada! Confira seu e-mail e use o link recebido para ativar a conta antes de entrar.' });
+      setPassword('');
+      setPasswordConfirm('');
       
-      setTimeout(() => {
-        router.push('/login');
-      }, 1500);
-      
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      const errorMsg = error.response?.data?.username?.[0] || 
-                       error.response?.data?.email?.[0] || 
-                       error.response?.data?.password?.[0] ||
-                       "Erro ao criar conta. Verifique os dados.";
+      const errorMsg = getApiErrorMessage(error, "Erro ao criar conta. Verifique os dados.", ["username", "email", "password"]);
       setFeedback({ type: 'error', message: errorMsg });
     } finally {
       setIsSubmitting(false);

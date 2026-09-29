@@ -1,31 +1,54 @@
 name: Deploy Backend to AWS EC2
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'backend/**'
+  workflow_dispatch:
+    inputs:
+      backup_confirmed:
+        description: 'Backup do banco e mídia verificado e migração revisada?'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-backend
+  cancel-in-progress: false
 
 jobs:
+  validate:
+    uses: ./.github/workflows/validate.yml
   deploy:
+    needs: validate
+    if: inputs.backup_confirmed && github.ref == 'refs/heads/main'
+    environment: production
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Deploy to EC2 via SSH
       uses: appleboy/ssh-action@v0.1.10
+      env:
+        DEPLOY_SHA: ${{ github.sha }}
       with:
         host: ${{ secrets.EC2_HOST }}
         username: ubuntu
         key: ${{ secrets.EC2_SSH_KEY }}
+        envs: DEPLOY_SHA
         script: |
+          set -e
           cd /home/ubuntu/PET-SAUDE3/backend
-          git pull origin main
+          git fetch origin main
+          git merge --ff-only "$DEPLOY_SHA"
+          test "$(git rev-parse HEAD)" = "$DEPLOY_SHA"
           source venv/bin/activate
           pip install -r requirements.txt
+          pip check
+          python manage.py check_release
+          python manage.py migrate --plan
           python manage.py migrate
           python manage.py collectstatic --noinput
           sudo systemctl restart gunicorn

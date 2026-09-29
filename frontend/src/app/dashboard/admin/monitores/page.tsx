@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import api from "@/lib/api";
+import api, { getApiErrorMessage } from "@/lib/api";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { UserPlus, Users, Loader2, CheckCircle2, AlertCircle, Trash2 } from "lucide-react";
 
 interface User {
@@ -14,6 +15,7 @@ interface User {
 }
 
 export default function AdminMonitoresPage() {
+  const { isLoading: isCheckingAuth } = useRequireAuth("admin");
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -40,7 +42,7 @@ export default function AdminMonitoresPage() {
   };
 
   useEffect(() => {
-    fetchUsers();
+    void Promise.resolve().then(fetchUsers);
   }, []);
 
   const handleCreateMonitor = async (e: React.FormEvent) => {
@@ -49,7 +51,7 @@ export default function AdminMonitoresPage() {
     setIsSubmitting(true);
 
     try {
-      const payload: any = {
+      const payload: Record<string, string> = {
         username,
         email,
         first_name: firstName,
@@ -59,13 +61,13 @@ export default function AdminMonitoresPage() {
         payload.password = password;
       }
 
-      const response = await api.post('/auth/monitors/', payload);
+      const response = await api.post<{ temp_password: string; email_sent: boolean }>('/auth/monitors/', payload);
       
       const generatedPassword = response.data.temp_password;
       
       setFeedback({ 
         type: 'success', 
-        message: `Monitor criado com sucesso! A senha inicial é: ${generatedPassword}` 
+        message: `Monitor criado! A senha inicial é: ${generatedPassword}. ${response.data.email_sent ? 'E-mail de boas-vindas enviado.' : 'O e-mail não foi enviado. Entregue a senha ao monitor por um canal seguro.'}`
       });
       setUsername("");
       setEmail("");
@@ -73,11 +75,10 @@ export default function AdminMonitoresPage() {
       setLastName("");
       setPassword("");
       
-      fetchUsers();
+      void Promise.resolve().then(fetchUsers);
       
-    } catch (error: any) {
-      console.error(error);
-      const detail = error.response?.data?.username?.[0] || error.response?.data?.detail || "Erro ao criar monitor. Verifique os dados.";
+    } catch (error: unknown) {
+      const detail = getApiErrorMessage(error, "Erro ao criar monitor. Verifique os dados.", ["username", "email", "password", "first_name", "last_name", "non_field_errors"]);
       setFeedback({ type: 'error', message: detail });
     } finally {
       setIsSubmitting(false);
@@ -87,7 +88,7 @@ export default function AdminMonitoresPage() {
   const handleRoleChange = async (userId: number, newRole: string) => {
     try {
       await api.patch(`/auth/users/${userId}/`, { role: newRole });
-      fetchUsers();
+      void Promise.resolve().then(fetchUsers);
     } catch (error) {
       console.error("Erro ao atualizar papel do usuário:", error);
       alert("Erro ao atualizar o nível de acesso.");
@@ -104,6 +105,10 @@ export default function AdminMonitoresPage() {
       alert("Erro ao excluir usuário.");
     }
   };
+
+  if (isCheckingAuth) {
+    return <div className="flex min-h-screen items-center justify-center gap-3 text-slate-600"><Loader2 className="animate-spin" /> Verificando acesso...</div>;
+  }
 
   return (
     <div className="flex flex-col gap-8 pb-12">
@@ -158,10 +163,11 @@ export default function AdminMonitoresPage() {
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-slate-700">Senha (Opcional - Gerada automaticamente se vazia)</label>
                 <input 
-                  type="password" value={password} onChange={e => setPassword(e.target.value)}
+                  type="password" value={password} onChange={e => setPassword(e.target.value)} minLength={8} autoComplete="new-password" aria-describedby="monitor-password-help"
                   placeholder="Defina a senha do monitor..."
                   className="px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)]"
                 />
+                <p id="monitor-password-help" className="text-xs text-slate-500">Deixe vazio para gerar uma senha, ou use pelo menos 8 caracteres. Evite senhas comuns ou somente números.</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

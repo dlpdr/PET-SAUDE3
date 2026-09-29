@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import { Lock, Save, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import api from "@/lib/api";
-import Cookies from "js-cookie";
+import api, { getApiErrorMessage } from "@/lib/api";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import Cookies from 'js-cookie';
+import Link from 'next/link';
 
 export default function PerfilPage() {
+  const { isLoading: isCheckingAuth } = useRequireAuth();
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -34,32 +37,26 @@ export default function PerfilPage() {
         new_password: newPassword
       });
       
-      setFeedback({ type: 'success', message: 'Senha atualizada com sucesso! Use a nova senha no próximo login.' });
+      Cookies.remove('access_token');
+      Cookies.remove('refresh_token');
+      Cookies.remove('user_role');
+      window.dispatchEvent(new Event('auth-change'));
+      setFeedback({ type: 'success', message: 'Senha atualizada! Entre novamente com a nova senha.' });
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      const errorMsg = error.response?.data?.old_password?.[0] || 
-                       error.response?.data?.detail ||
-                       "Erro ao alterar senha. Verifique se a senha atual está correta.";
+      const errorMsg = getApiErrorMessage(error, "Erro ao alterar senha. Verifique os dados.", ["old_password", "new_password"]);
       setFeedback({ type: 'error', message: errorMsg });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Se não estiver logado, não deve ver a tela, idealmente um middleware resolve, mas como fallback:
-  if (!Cookies.get('access_token')) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-6">
-        <Lock size={48} className="text-slate-300 mb-4" />
-        <h2 className="text-2xl font-bold text-slate-800">Acesso Negado</h2>
-        <p className="text-slate-500 mt-2">Você precisa estar logado para acessar as configurações de segurança.</p>
-        <a href="/login" className="mt-6 text-[var(--color-brand-blue-light)] hover:underline font-medium">Ir para Login</a>
-      </div>
-    );
+  if (isCheckingAuth) {
+    return <div className="flex min-h-screen items-center justify-center gap-3 text-slate-600"><Loader2 className="animate-spin" /> Verificando acesso...</div>;
   }
 
   return (
@@ -88,13 +85,14 @@ export default function PerfilPage() {
             </div>
           )}
 
-          <form onSubmit={handleChangePassword} className="flex flex-col gap-4 max-w-md">
+          {feedback?.type === 'success' ? <Link href="/login" className="text-blue-700 underline">Entrar com a nova senha</Link> : <form onSubmit={handleChangePassword} className="flex flex-col gap-4 max-w-md">
             
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-slate-700">Senha Atual *</label>
+              <label htmlFor="old-password" className="text-sm font-semibold text-slate-700">Senha Atual *</label>
               <input 
                 type="password" 
                 value={oldPassword}
+                id="old-password" autoComplete="current-password"
                 onChange={e => setOldPassword(e.target.value)}
                 className="px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] transition-all"
                 required
@@ -102,10 +100,11 @@ export default function PerfilPage() {
             </div>
 
             <div className="flex flex-col gap-1.5 mt-2">
-              <label className="text-sm font-semibold text-slate-700">Nova Senha *</label>
+              <label htmlFor="new-password" className="text-sm font-semibold text-slate-700">Nova Senha *</label>
               <input 
                 type="password" 
                 value={newPassword}
+                id="new-password" autoComplete="new-password"
                 onChange={e => setNewPassword(e.target.value)}
                 className="px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] transition-all"
                 required
@@ -113,10 +112,11 @@ export default function PerfilPage() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-slate-700">Confirmar Nova Senha *</label>
+              <label htmlFor="confirm-password" className="text-sm font-semibold text-slate-700">Confirmar Nova Senha *</label>
               <input 
                 type="password" 
                 value={confirmPassword}
+                id="confirm-password" autoComplete="new-password"
                 onChange={e => setConfirmPassword(e.target.value)}
                 className="px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] transition-all"
                 required
@@ -131,7 +131,7 @@ export default function PerfilPage() {
               {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
               Salvar Nova Senha
             </button>
-          </form>
+          </form>}
 
         </div>
       </div>

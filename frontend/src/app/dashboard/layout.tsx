@@ -1,12 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { LayoutDashboard, PlusCircle, LogOut, CheckSquare, Users, Library, ExternalLink } from "lucide-react";
+import { LayoutDashboard, PlusCircle, LogOut, CheckSquare, Users, Library, ExternalLink, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import { useEffect, useState } from "react";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export default function DashboardLayout({
   children,
@@ -14,18 +14,17 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const isAdmin = pathname.includes("/dashboard/admin");
-  const [userRole, setUserRole] = useState<string | null>(null);
-
-  useEffect(() => {
-    setUserRole(Cookies.get("user_role") || null);
-  }, []);
+  const { isLoading: isCheckingAuth } = useRequireAuth(isAdmin ? "admin" : ["monitor", "admin"]);
 
   const handleLogout = () => {
     Cookies.remove("access_token");
     Cookies.remove("refresh_token");
     Cookies.remove("user_role");
-    window.location.href = "/";
+    window.dispatchEvent(new Event('auth-change'));
+    router.push('/');
+    router.refresh();
   };
 
   const monitorNavItems = [
@@ -40,6 +39,10 @@ export default function DashboardLayout({
   ];
 
   const navItems = isAdmin ? adminNavItems : monitorNavItems;
+
+  if (isCheckingAuth) {
+    return <div className="flex min-h-screen items-center justify-center gap-3 text-slate-600"><Loader2 className="animate-spin" /> Verificando acesso...</div>;
+  }
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">

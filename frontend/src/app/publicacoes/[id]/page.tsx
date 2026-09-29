@@ -3,22 +3,35 @@
 import { motion } from "framer-motion";
 import { ArrowLeft, Calendar, User, Share2, Download, Tag, Heart, MessageCircle, Send, Loader2, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import api, { getMediaUrl } from "@/lib/api";
+import api, { getMediaUrl, getApiErrorStatus, getApiErrorMessage } from "@/lib/api";
+
+import Cookies from "js-cookie";
+import Image from "next/image";
+import type { PublicationDetail, PublicationComment } from "@/lib/types";
 
 export default function PublicacaoDetalhe() {
   const params = useParams();
   const id = params.id;
+  const router = useRouter();
+  const [role, setRole] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState("");
+  const [busyLike, setBusyLike] = useState(false);
+  const [busyComment, setBusyComment] = useState(false);
+  const [busyModeration, setBusyModeration] = useState(false);
+  const [motivo, setMotivo] = useState("");
 
-  const [post, setPost] = useState<any>(null);
+  const [post, setPost] = useState<PublicationDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [newComment, setNewComment] = useState("");
-  const [comentarios, setComentarios] = useState<any[]>([]);
+  const [shareFeedback, setShareFeedback] = useState("");
+
+  const [comentarios, setComentarios] = useState<PublicationComment[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
@@ -26,11 +39,12 @@ export default function PublicacaoDetalhe() {
       try {
         const res = await api.get(`/publications/${id}/`);
         setPost(res.data);
+        setRole(Cookies.get('access_token') ? Cookies.get('user_role') || 'visitante_registrado' : null);
         setIsLiked(res.data.is_liked || false);
         setLikesCount(res.data.likes_count || 0);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
-        if (err.response?.status === 404) {
+        if (getApiErrorStatus(err) === 404) {
           setError("Publicação não encontrada.");
         } else {
           setError("Erro ao carregar a publicação.");
@@ -46,6 +60,7 @@ export default function PublicacaoDetalhe() {
         setComentarios(res.data);
       } catch (err) {
         console.error("Erro ao buscar comentários:", err);
+        setFeedback("Não foi possível carregar os comentários. Tente recarregar a página.");
       }
     };
 
@@ -57,12 +72,15 @@ export default function PublicacaoDetalhe() {
 
   const handleLike = async () => {
     // Requer autenticação
-    const token = document.cookie.includes('access_token');
+    const token = Cookies.get('access_token');
     if (!token) {
-      alert("Você precisa fazer login para curtir.");
+      router.push("/login");
       return;
     }
 
+    if (busyLike) return;
+    setBusyLike(true);
+    setFeedback("");
     const wasLiked = isLiked;
     // Otimista: atualiza a interface instantaneamente
     setIsLiked(!wasLiked);
@@ -79,27 +97,35 @@ export default function PublicacaoDetalhe() {
       // Reverte se der erro
       setIsLiked(wasLiked);
       setLikesCount(prev => wasLiked ? prev + 1 : prev - 1);
-      alert("Erro ao registrar curtida.");
+      setFeedback(getApiErrorMessage(error, "Erro ao registrar curtida."));
+    } finally {
+      setBusyLike(false);
     }
   };
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || busyComment) return;
 
-    const token = document.cookie.includes('access_token');
+    const token = Cookies.get('access_token');
     if (!token) {
-      alert("Você precisa fazer login para comentar.");
+      router.push("/login");
       return;
     }
 
     try {
-      const res = await api.post(`/publications/${id}/comments/`, { texto: newComment });
+      setBusyComment(true);
+      setFeedback("");
+      const res = await api.post<PublicationComment>(`/publications/${id}/comments/`, { texto: newComment.trim() });
       setComentarios(prev => [res.data, ...prev]);
       setNewComment("");
+      setPost(prev => prev ? { ...prev, comments_count: (prev.comments_count || 0) + 1 } : prev);
+      setFeedback("Comentário enviado!");
     } catch (error) {
       console.error("Erro ao comentar:", error);
-      alert("Erro ao enviar o comentário.");
+      setFeedback(getApiErrorMessage(error, "Erro ao enviar o comentário."));
+    } finally {
+      setBusyComment(false);
     }
   };
 
@@ -109,9 +135,51 @@ export default function PublicacaoDetalhe() {
     return "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?q=80&w=1200&auto=format&fit=crop";
   };
 
-  const formatDate = (isoStr: string) => {
+  const formatDate = (isoStr: string | null | undefined) => {
     if (!isoStr) return "Sem data";
     return new Date(isoStr).toLocaleDateString('pt-BR');
+  };
+
+  const handleShare = async () => {
+    if (!post) return;
+    const url = window.location.href;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: post.titulo, url });
+        return;
+      }
+
+      await navigator.clipboard.writeText(url);
+      setShareFeedback("Link copiado!");
+      window.setTimeout(() => setShareFeedback(""), 2500);
+    } catch (shareError) {
+      if (shareError instanceof DOMException && shareError.name === "AbortError") return;
+      console.error("Erro ao compartilhar publicação:", shareError);
+      setShareFeedback("Não foi possível compartilhar o link.");
+      window.setTimeout(() => setShareFeedback(""), 3000);
+    }
+  };
+
+  const formatActivityDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    const [year, month, day] = dateStr.split("-").map(Number);
+    return new Date(year, month - 1, day).toLocaleDateString("pt-BR");
+  };
+
+  const moderate = async (action: 'approve' | 'reject') => {
+    if (busyModeration || (action === 'reject' && !motivo.trim())) return;
+    setBusyModeration(true);
+    try {
+      const result = await api.post<{ email_sent?: boolean }>(`/publications/manage/${id}/${action}/`, { motivo: motivo.trim() });
+      const res = await api.get<PublicationDetail>(`/publications/${id}/`);
+      setPost(res.data);
+      setFeedback((action === 'approve' ? 'Publicação aprovada.' : 'Publicação rejeitada.') + (result.data.email_sent === false ? ' O e-mail não foi enviado; verifique o serviço de e-mail.' : ''));
+    } catch (error) {
+      setFeedback(getApiErrorMessage(error, 'Não foi possível concluir a revisão.'));
+    } finally {
+      setBusyModeration(false);
+    }
   };
 
   if (isLoading) {
@@ -133,7 +201,7 @@ export default function PublicacaoDetalhe() {
   }
 
   const imagensArray = post.imagens && post.imagens.length > 0 
-    ? post.imagens.map((i: any) => getMediaUrl(i.imagem))
+    ? post.imagens.map((i) => getMediaUrl(i.imagem))
     : [getDefaultImage(post.categoria)];
 
   const autorNome = post.autor ? `${post.autor.first_name} ${post.autor.last_name}` : "Autor desconhecido";
@@ -148,6 +216,13 @@ export default function PublicacaoDetalhe() {
 
   return (
     <div className="flex flex-col items-center w-full min-h-screen bg-white">
+      {post.status !== 'publicado' && <p role="status" className="w-full bg-amber-50 p-4 text-center text-amber-900">Esta publicação está {post.status === 'pendente' ? 'em análise' : post.status === 'rascunho' ? 'em rascunho' : 'rejeitada'} e não é visível ao público.</p>}
+      {role === 'admin' && post.status === 'pendente' && <div className="w-full max-w-4xl flex flex-wrap gap-3 p-4 print:hidden">
+        <button disabled={busyModeration} onClick={() => moderate('approve')} className="rounded-lg bg-emerald-700 px-4 py-2 text-white disabled:opacity-50">Aprovar</button>
+        <input aria-label="Motivo da rejeição" value={motivo} onChange={e => setMotivo(e.target.value)} placeholder="Motivo da rejeição" className="flex-1 rounded-lg border p-2" />
+        <button disabled={busyModeration || !motivo.trim()} onClick={() => moderate('reject')} className="rounded-lg bg-red-700 px-4 py-2 text-white disabled:opacity-50">Rejeitar</button>
+      </div>}
+      <p role="status" className="text-center text-sm text-slate-700">{feedback}</p>
       
       <section className="w-full relative h-[40vh] min-h-[300px] flex items-end justify-center group overflow-hidden">
         <div 
@@ -159,13 +234,13 @@ export default function PublicacaoDetalhe() {
         {imagensArray.length > 1 && (
           <>
             <button 
-              onClick={prevImage}
+              onClick={prevImage} aria-label="Imagem anterior"
               className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/30 hover:bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all z-20 backdrop-blur-sm print:hidden"
             >
               <ChevronLeft size={24} />
             </button>
             <button 
-              onClick={nextImage}
+              onClick={nextImage} aria-label="Próxima imagem"
               className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/30 hover:bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all z-20 backdrop-blur-sm print:hidden"
             >
               <ChevronRight size={24} />
@@ -173,10 +248,10 @@ export default function PublicacaoDetalhe() {
             
             {/* Dots */}
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20 print:hidden">
-              {imagensArray.map((_: any, idx: number) => (
+              {imagensArray.map((_, idx) => (
                 <button 
                   key={idx}
-                  onClick={() => setCurrentImageIndex(idx)}
+                  onClick={() => setCurrentImageIndex(idx)} aria-label={`Ver imagem ${idx + 1}`}
                   className={`w-2 h-2 rounded-full transition-all ${idx === currentImageIndex ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80'}`}
                 />
               ))}
@@ -209,11 +284,20 @@ export default function PublicacaoDetalhe() {
                 <Calendar size={16} />
                 <span>{formatDate(post.data_publicacao || post.criado_em)}</span>
               </div>
+              {post.data_atividade && (
+                <div className="flex items-center gap-2">
+                  <Calendar size={16} />
+                  <span>Data da atividade: {formatActivityDate(post.data_atividade)}</span>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-4 text-white print:hidden">
               <button 
                 onClick={handleLike}
+                disabled={busyLike}
+                aria-pressed={isLiked}
+                title={role ? (isLiked ? 'Descurtir' : 'Curtir') : 'Fazer login para curtir'}
                 className="flex items-center gap-2 hover:scale-110 transition-transform"
               >
                 <Heart size={24} className={isLiked ? "fill-red-500 text-red-500" : ""} />
@@ -242,6 +326,20 @@ export default function PublicacaoDetalhe() {
             {post.texto}
           </motion.div>
 
+          {post.imagens?.length > 1 && (
+            <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {post.imagens.slice(1).map((imagem) => {
+                const src = getMediaUrl(imagem.imagem);
+                return src ? (
+                  <figure key={imagem.id} className="overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
+                    <Image unoptimized width={800} height={600} src={src} alt={imagem.descricao_acessivel || post.titulo} className="h-64 w-full object-cover" />
+                    {imagem.descricao_acessivel && <figcaption className="px-4 py-3 text-sm text-slate-600">{imagem.descricao_acessivel}</figcaption>}
+                  </figure>
+                ) : null;
+              })}
+            </div>
+          )}
+
           {/* Seção de Comentários */}
           <div className="mt-16 pt-12 border-t border-slate-100 print:hidden">
             <h3 className="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-3">
@@ -250,7 +348,7 @@ export default function PublicacaoDetalhe() {
             </h3>
 
             {/* Form de Comentário */}
-            <form onSubmit={handleCommentSubmit} className="mb-10 flex gap-4">
+            {role ? <form onSubmit={handleCommentSubmit} className="mb-10 flex gap-4">
               <div className="h-10 w-10 rounded-full bg-slate-200 flex-shrink-0" />
               <div className="flex-1 flex flex-col gap-3">
                 <textarea 
@@ -260,23 +358,23 @@ export default function PublicacaoDetalhe() {
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] resize-y min-h-[100px]"
                   required
                 />
-                <button type="submit" className="self-end flex items-center gap-2 px-6 py-2.5 bg-[var(--color-brand-blue-dark)] text-white rounded-lg font-medium hover:bg-slate-800 transition-all">
+                <button type="submit" disabled={busyComment || !newComment.trim()} className="self-end flex items-center gap-2 px-6 py-2.5 bg-[var(--color-brand-blue-dark)] text-white rounded-lg font-medium hover:bg-slate-800 transition-all">
                   <Send size={16} /> Comentar
                 </button>
               </div>
-            </form>
+            </form> : <p className="mb-8"><Link href="/login" className="text-blue-700 underline">Faça login para comentar</Link></p>}
 
             {/* Lista de Comentários */}
             <div className="flex flex-col gap-6">
-              {comentarios.length > 0 ? comentarios.map((comment: any) => (
+              {comentarios.length > 0 ? comentarios.map((comment) => (
                 <div key={comment.id} className="flex gap-4">
                   <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-100 to-orange-100 flex items-center justify-center font-bold text-slate-600 flex-shrink-0">
-                    {comment.autor.charAt(0)}
+                    {comment.autor?.first_name?.charAt(0) || '?'}
                   </div>
                   <div className="flex-1 bg-slate-50 p-4 rounded-2xl rounded-tl-none border border-slate-100">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-slate-800 text-sm">{comment.autor}</span>
-                      <span className="text-xs text-slate-400">{comment.tempo}</span>
+                      <span className="font-bold text-slate-800 text-sm">{comment.autor ? `${comment.autor.first_name} ${comment.autor.last_name}` : 'Usuário'}</span>
+                      <span className="text-xs text-slate-400">{formatDate(comment.criado_em)}</span>
                     </div>
                     <p className="text-slate-600 text-sm leading-relaxed">{comment.texto}</p>
                   </div>
@@ -290,23 +388,10 @@ export default function PublicacaoDetalhe() {
 
         <div className="w-full md:w-64 flex-shrink-0 print:hidden">
           <div className="sticky top-24 flex flex-col gap-4">
-            <button 
-              onClick={() => {
-                console.log("Share clicked");
-                try {
-                  navigator.clipboard.writeText(window.location.href).then(() => {
-                    alert("Link copiado para a área de transferência!");
-                  }).catch(() => {
-                    alert("Erro ao copiar o link. Copie a URL do navegador.");
-                  });
-                } catch (e) {
-                  alert("Erro: Copie a URL do navegador.");
-                }
-              }}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-blue-dark)] text-white rounded-xl font-medium hover:bg-slate-800 transition-all shadow-sm print:hidden"
-            >
-              <Share2 size={18} /> Copiar Link
+            <button onClick={handleShare} className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-blue-dark)] text-white rounded-xl font-medium hover:bg-slate-800 transition-all shadow-sm">
+              <Share2 size={18} /> Compartilhar
             </button>
+            <p aria-live="polite" className="min-h-5 text-center text-sm text-slate-600">{shareFeedback}</p>
             
             <button 
               onClick={() => {
