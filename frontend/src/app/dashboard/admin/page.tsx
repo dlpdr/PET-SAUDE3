@@ -183,7 +183,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {loadError ? <button onClick={() => void fetchPending()} className="p-6 text-blue-700 underline">Tentar carregar o painel novamente</button> : isLoading ? (
+        {loadError ? <button onClick={() => void fetchPosts()} className="p-6 text-blue-700 underline">Tentar carregar o painel novamente</button> : isLoading ? (
           <div className="p-12 flex justify-center items-center">
             <Loader2 className="animate-spin text-slate-400" size={32} />
           </div>
