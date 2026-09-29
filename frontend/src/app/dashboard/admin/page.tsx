@@ -21,7 +21,9 @@ interface Publication {
 export default function AdminDashboard() {
   const { isLoading: isCheckingAuth } = useRequireAuth("admin");
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState<"pendentes" | "publicados">("pendentes");
   const [pendingPosts, setPendingPosts] = useState<Publication[]>([]);
+  const [publishedPosts, setPublishedPosts] = useState<Publication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [stats, setStats] = useState<{ total_publicadas: number; total_pendentes: number; total_curtidas: number; total_usuarios: number } | null>(null);
@@ -29,17 +31,24 @@ export default function AdminDashboard() {
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [loadError, setLoadError] = useState(false);
-  const visiblePosts = pendingPosts.filter(post => post.titulo.toLowerCase().includes(searchTerm.toLowerCase()));
+  
+  const currentPosts = activeTab === "pendentes" ? pendingPosts : publishedPosts;
+  const visiblePosts = currentPosts.filter(post => post.titulo.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  const fetchPending = async () => {
+  const fetchPosts = async () => {
     setLoadError(false);
     try {
-      const response = await api.get('/publications/manage/pending/');
-      setPendingPosts(response.data);
-      const statsResponse = await api.get('/publications/manage/stats/');
+      const [pendingResponse, publishedResponse, statsResponse] = await Promise.all([
+        api.get('/publications/manage/pending/'),
+        api.get('/publications/manage/?status=publicado'),
+        api.get('/publications/manage/stats/')
+      ]);
+      setPendingPosts(pendingResponse.data);
+      // DRF with pagination returns results array
+      setPublishedPosts(publishedResponse.data.results || publishedResponse.data);
       setStats(statsResponse.data);
     } catch (error) {
-      console.error("Erro ao buscar publicações pendentes:", error);
+      console.error("Erro ao buscar dados:", error);
       setFeedback("Não foi possível carregar todos os dados do painel.");
       setLoadError(true);
     } finally {
@@ -48,7 +57,7 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    void Promise.resolve().then(fetchPending);
+    void Promise.resolve().then(fetchPosts);
   }, []);
 
   const formatDate = (isoStr: string) => {
@@ -61,7 +70,7 @@ export default function AdminDashboard() {
       try {
         const result = await api.post<{ email_sent?: boolean }>(`/publications/manage/${id}/approve/`);
         setFeedback(result.data.email_sent === false ? 'Publicação aprovada, mas o e-mail não foi enviado. Verifique o serviço de e-mail.' : 'Publicação aprovada e autor notificado.');
-        fetchPending();
+        fetchPosts();
       } catch (error) {
         console.error("Erro ao aprovar:", error);
         setFeedback("Erro ao aprovar a publicação. Tente novamente.");
@@ -80,10 +89,28 @@ export default function AdminDashboard() {
         setFeedback(result.data.email_sent === false ? 'Publicação rejeitada, mas o e-mail não foi enviado. Verifique o serviço de e-mail.' : 'Publicação rejeitada e autor notificado.');
         setRejectingId(null);
         setRejectionReason('');
-        fetchPending();
+        fetchPosts();
       } catch (error) {
         console.error("Erro ao rejeitar:", error);
         setFeedback("Erro ao rejeitar a publicação. Tente novamente.");
+      } finally {
+        setActionLoading(null);
+      }
+    }
+  };
+
+  const handleTirarDoAr = async (id: number) => {
+    const motivo = prompt("Tem certeza que deseja TIRAR ESTA PUBLICAÇÃO DO AR? Informe o motivo:");
+    if (motivo !== null) {
+      setActionLoading(id);
+      try {
+        await api.post(`/publications/manage/${id}/reject/`, { motivo: `Removido do ar pelo Admin: ${motivo}` });
+        setFeedback("Publicação removida do ar com sucesso!");
+        setTimeout(() => setFeedback(""), 3000);
+        fetchPosts();
+      } catch (error) {
+        console.error("Erro ao tirar do ar:", error);
+        setFeedback("Erro ao tirar a publicação do ar.");
       } finally {
         setActionLoading(null);
       }
@@ -110,23 +137,37 @@ export default function AdminDashboard() {
       </div>}
       
       {/* Alert Header */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex items-start gap-4 shadow-sm">
-        <AlertCircle className="text-amber-600 mt-1 flex-shrink-0" size={24} />
-        <div>
-          <h2 className="text-amber-800 font-bold text-lg mb-1">Fila de Aprovação ({pendingPosts.length})</h2>
-          <p className="text-amber-700 text-sm">
-            Existem {pendingPosts.length} publicações enviadas pelos monitores aguardando a sua revisão. 
-            Revise cuidadosamente antes de publicar no portal oficial.
-          </p>
+      {activeTab === 'pendentes' && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex items-start gap-4 shadow-sm">
+          <AlertCircle className="text-amber-600 mt-1 flex-shrink-0" size={24} />
+          <div>
+            <h2 className="text-amber-800 font-bold text-lg mb-1">Fila de Aprovação ({pendingPosts.length})</h2>
+            <p className="text-amber-700 text-sm">
+              Existem {pendingPosts.length} publicações enviadas pelos monitores aguardando a sua revisão. 
+              Revise cuidadosamente antes de publicar no portal oficial.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Content Area */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
+        <div className="border-b border-slate-100 bg-slate-50 flex">
+          <button 
+            className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors ${activeTab === 'pendentes' ? 'border-[var(--color-brand-blue-dark)] text-[var(--color-brand-blue-dark)]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+            onClick={() => setActiveTab('pendentes')}
+          >
+            Fila de Aprovação ({pendingPosts.length})
+          </button>
+          <button 
+            className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors ${activeTab === 'publicados' ? 'border-[var(--color-brand-blue-dark)] text-[var(--color-brand-blue-dark)]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+            onClick={() => setActiveTab('publicados')}
+          >
+            Conteúdo Online ({publishedPosts.length})
+          </button>
+        </div>
+
         <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-bold text-slate-800">Publicações Pendentes</h2>
-          </div>
           
           <div className="flex items-center gap-3 w-full md:w-auto">
             <div className="relative flex-1 md:w-64">
@@ -179,22 +220,38 @@ export default function AdminDashboard() {
                       >
                         Visualizar
                       </Link>
-                      <button 
-                        onClick={() => { setRejectingId(post.id); setRejectionReason(''); }}
-                        disabled={actionLoading === post.id}
-                        className="inline-flex items-center gap-1 px-4 py-2 bg-red-50 text-red-600 text-sm font-medium rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
-                      >
-                        {actionLoading === post.id ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />} 
-                        Rejeitar
-                      </button>
-                      <button 
-                        onClick={() => handleApprove(post.id)}
-                        disabled={actionLoading === post.id}
-                        className="inline-flex items-center gap-1 px-4 py-2 bg-green-50 text-green-700 text-sm font-medium rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50"
-                      >
-                        {actionLoading === post.id ? <Loader2 size={16} className="animate-spin" /> : <CheckSquare size={16} />} 
-                        Aprovar
-                      </button>
+
+                      {activeTab === 'pendentes' && (
+                        <>
+                          <button 
+                            onClick={() => { setRejectingId(post.id); setRejectionReason(''); }}
+                            disabled={actionLoading === post.id}
+                            className="inline-flex items-center gap-1 px-4 py-2 bg-red-50 text-red-600 text-sm font-medium rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                          >
+                            {actionLoading === post.id ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />} 
+                            Rejeitar
+                          </button>
+                          <button 
+                            onClick={() => handleApprove(post.id)}
+                            disabled={actionLoading === post.id}
+                            className="inline-flex items-center gap-1 px-4 py-2 bg-green-50 text-green-700 text-sm font-medium rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50"
+                          >
+                            {actionLoading === post.id ? <Loader2 size={16} className="animate-spin" /> : <CheckSquare size={16} />} 
+                            Aprovar
+                          </button>
+                        </>
+                      )}
+
+                      {activeTab === 'publicados' && (
+                        <button 
+                          onClick={() => handleTirarDoAr(post.id)}
+                          disabled={actionLoading === post.id}
+                          className="inline-flex items-center gap-1 px-4 py-2 bg-orange-50 text-orange-600 text-sm font-medium rounded-lg hover:bg-orange-100 transition-colors disabled:opacity-50"
+                        >
+                          {actionLoading === post.id ? <Loader2 size={16} className="animate-spin" /> : <AlertCircle size={16} />} 
+                          Tirar do Ar
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
