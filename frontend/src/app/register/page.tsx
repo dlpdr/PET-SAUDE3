@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import api, { getApiErrorMessage } from "@/lib/api";
+import GoogleLogin from "@/components/GoogleLogin";
 
 export default function RegisterPage() {
   
@@ -82,6 +83,10 @@ export default function RegisterPage() {
           </div>
         )}
 
+        <form onSubmit={handleRegister} className="w-full flex flex-col gap-4">
+          <div className="flex gap-4">
+            <div className="relative flex-1">
+              <input 
         <form onSubmit={handleRegister} className="w-full flex flex-col gap-5">
           <div className="flex flex-col md:flex-row gap-5">
             <div className="relative group flex-1">
@@ -170,6 +175,14 @@ export default function RegisterPage() {
             {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <>Cadastrar <ArrowRight size={18} /></>}
           </button>
         </form>
+
+        <div className="w-full mt-8 mb-6 flex items-center justify-center">
+          <div className="flex-1 h-px bg-slate-200"></div>
+          <span className="px-4 text-xs text-slate-400 font-semibold uppercase tracking-wider">Ou continue com</span>
+          <div className="flex-1 h-px bg-slate-200"></div>
+        </div>
+
+        <GoogleLogin />
 
         <p className="mt-8 text-sm text-slate-500 font-medium">
           Já possui uma conta?{" "}

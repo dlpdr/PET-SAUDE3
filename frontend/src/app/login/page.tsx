@@ -133,6 +133,12 @@ export default function LoginPage() {
           </button>
         </form>
 
+        <div className="w-full mt-8 mb-6 flex items-center justify-center">
+          <div className="flex-1 h-px bg-slate-200"></div>
+          <span className="px-4 text-xs text-slate-400 font-semibold uppercase tracking-wider">Ou continue com</span>
+          <div className="flex-1 h-px bg-slate-200"></div>
+        </div>
+
         <GoogleLogin />
 
         <p className="mt-8 text-sm text-slate-500 font-medium">

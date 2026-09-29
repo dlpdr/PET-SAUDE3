@@ -39,7 +39,7 @@ export default function GoogleLogin() {
     } finally { busy.current = false; }
   }
 
-  return <div className="mt-6 flex flex-col items-center gap-3">
+  return <div className="w-full flex flex-col items-center gap-3">
     <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" onError={() => setError('Não foi possível carregar o login Google. Use seu usuário e senha.')} onReady={() => {
       if (!window.google || !target.current) return;
       window.google.accounts.id.initialize({ client_id: clientId, callback: login });
