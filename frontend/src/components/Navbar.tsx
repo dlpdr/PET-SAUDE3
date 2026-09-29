@@ -2,27 +2,33 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { LogOut, LayoutDashboard } from "lucide-react";
 
-export default function Navbar() {
-  const [role, setRole] = useState<string | null>(null);
+function subscribe(onChange: () => void) {
+  window.addEventListener('focus', onChange);
+  window.addEventListener('auth-change', onChange);
+  return () => {
+    window.removeEventListener('focus', onChange);
+    window.removeEventListener('auth-change', onChange);
+  };
+}
 
-  useEffect(() => {
-    // Check if user is logged in
-    const userRole = Cookies.get("user_role");
-    if (userRole) {
-      setRole(userRole);
-    }
-  }, []);
+export default function Navbar() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  usePathname();
+  const router = useRouter();
+  const role = useSyncExternalStore(subscribe, () => Cookies.get('access_token') ? Cookies.get('user_role') || null : null, () => null);
 
   const handleLogout = () => {
     Cookies.remove("access_token");
     Cookies.remove("refresh_token");
     Cookies.remove("user_role");
-    setRole(null);
-    window.location.href = "/"; // redirect to home
+    window.dispatchEvent(new Event('auth-change'));
+    router.push('/');
+    router.refresh();
   };
 
   const getDashboardLink = () => {
@@ -32,21 +38,22 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="max-w-6xl mx-auto glass rounded-2xl px-6 py-3 flex items-center justify-between transition-all duration-300 print:hidden">
+    <nav aria-label="Navegação principal" className="max-w-6xl mx-auto glass rounded-2xl px-4 py-3 flex flex-wrap gap-3 items-center justify-between transition-all duration-300 print:hidden">
       <div className="flex items-center gap-4">
         <Link href="/" className="h-8 w-24 relative block cursor-pointer">
           <Image src="/logos/petsaude.png" alt="PET Saúde Logo" fill className="object-contain object-left" />
         </Link>
       </div>
       
-      <div className="hidden md:flex items-center gap-8 text-sm font-medium text-[var(--color-brand-blue-dark)]">
+      <button type="button" aria-expanded={menuOpen} aria-controls="public-navigation" onClick={() => setMenuOpen(value => !value)} className="rounded-lg border px-3 py-2 text-sm md:hidden">{menuOpen ? 'Fechar menu' : 'Menu'}</button>
+      <div id="public-navigation" onClick={() => setMenuOpen(false)} className={`${menuOpen ? 'flex' : 'hidden'} order-last w-full flex-wrap md:order-none md:w-auto md:flex items-center gap-4 text-sm font-medium text-[var(--color-brand-blue-dark)]`}>
         <Link href="/" className="hover:text-[var(--color-brand-orange)] transition-colors">Início</Link>
-        <Link href="/#sobre" className="hover:text-[var(--color-brand-orange)] transition-colors">Sobre</Link>
+        <Link href="/sobre" className="hover:text-[var(--color-brand-orange)] transition-colors">Sobre</Link>
         <Link href="/publicacoes" className="hover:text-[var(--color-brand-orange)] transition-colors">Atividades</Link>
         <Link href="/#parceiros" className="hover:text-[var(--color-brand-orange)] transition-colors">Parceiros</Link>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center justify-end gap-2">
         {role ? (
           <>
             <Link 

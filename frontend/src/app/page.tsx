@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import api, { getMediaUrl } from "@/lib/api";
+import type { PublicationSummary, PaginatedResponse } from "@/lib/types";
 
 export default function Home() {
   const fadeIn = {
@@ -14,17 +15,19 @@ export default function Home() {
     transition: { duration: 0.6 }
   };
 
-  const [recentPosts, setRecentPosts] = useState<any[]>([]);
+  const [recentPosts, setRecentPosts] = useState<PublicationSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await api.get('/publications/?ordering=-data_publicacao');
+        const res = await api.get<PaginatedResponse<PublicationSummary> | PublicationSummary[]>('/publications/?ordering=-data_publicacao');
         // Pega as 3 mais recentes
-        setRecentPosts(res.data.slice(0, 3));
+        setRecentPosts((Array.isArray(res.data) ? res.data : res.data.results).slice(0, 3));
       } catch (err) {
         console.error("Erro ao buscar publicações recentes:", err);
+        setError('Não foi possível carregar os trabalhos recentes. Tente novamente mais tarde.');
       } finally {
         setIsLoading(false);
       }
@@ -32,7 +35,7 @@ export default function Home() {
     fetchPosts();
   }, []);
 
-  const formatDate = (isoStr: string) => {
+  const formatDate = (isoStr: string | null) => {
     if (!isoStr) return "Sem data";
     return new Date(isoStr).toLocaleDateString('pt-BR');
   };
@@ -130,7 +133,7 @@ export default function Home() {
           </Link>
         </div>
 
-        {isLoading ? (
+        {error ? <p role="alert" className="py-8 text-center text-slate-600">{error}</p> : isLoading ? (
           <div className="flex justify-center items-center py-20">
             <Loader2 className="animate-spin text-[var(--color-brand-blue-light)]" size={48} />
           </div>

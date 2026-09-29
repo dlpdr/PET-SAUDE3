@@ -4,7 +4,9 @@ import { ArrowLeft, UploadCloud, Save, Send, Loader2, CheckCircle2, AlertCircle 
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import api from "@/lib/api";
+import api, { getApiErrorMessage, getMediaUrl } from "@/lib/api";
+import Image from "next/image";
+import type { PublicationImage } from "@/lib/types";
 
 export default function EditarPublicacao() {
   const router = useRouter();
@@ -16,6 +18,7 @@ export default function EditarPublicacao() {
   const [texto, setTexto] = useState("");
   const [dataAtividade, setDataAtividade] = useState("");
   const [imagens, setImagens] = useState<File[]>([]);
+  const [existingImages, setExistingImages] = useState<PublicationImage[]>([]);
   const [descricoesImagens, setDescricoesImagens] = useState<string[]>([]);
   const [statusAtual, setStatusAtual] = useState("");
   const [motivoRejeicao, setMotivoRejeicao] = useState("");
@@ -29,6 +32,7 @@ export default function EditarPublicacao() {
       try {
         const res = await api.get(`/publications/manage/${id}/`);
         const post = res.data;
+        setExistingImages(post.imagens || []);
         setTitulo(post.titulo);
         const catMap: Record<string, string> = {
           'Ação Comunitária': 'acao',
@@ -42,7 +46,7 @@ export default function EditarPublicacao() {
         if (post.data_atividade) {
           setDataAtividade(post.data_atividade);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
         setFeedback({ type: 'error', message: "Erro ao carregar a publicação. Verifique se ela existe e se você tem permissão." });
       } finally {
@@ -56,6 +60,11 @@ export default function EditarPublicacao() {
     e.preventDefault();
     setFeedback(null);
 
+    if (existingImages.length + imagens.length > 5) {
+      setFeedback({ type: 'error', message: 'O limite é de cinco imagens, incluindo as já anexadas.' });
+      return;
+    }
+
     if (!titulo || !categoria || !texto) {
       setFeedback({ type: 'error', message: "Por favor, preencha todos os campos obrigatórios." });
       return;
@@ -68,9 +77,7 @@ export default function EditarPublicacao() {
       formData.append("categoria", categoria === 'acao' ? 'Ação Comunitária' : categoria === 'cartilha' ? 'Cartilha Educativa' : 'Artigo Acadêmico');
       formData.append("texto", texto);
       formData.append("status", novoStatus);
-      if (dataAtividade) {
-        formData.append("data_atividade", dataAtividade);
-      }
+      formData.append("data_atividade", dataAtividade);
 
       imagens.forEach((img, index) => {
         formData.append("novas_imagens", img);
@@ -89,11 +96,11 @@ export default function EditarPublicacao() {
         router.push('/dashboard/monitor');
       }, 1500);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       setFeedback({ 
         type: 'error', 
-        message: error.response?.data?.detail || "Erro ao atualizar a publicação. Verifique os dados e tente novamente." 
+        message: getApiErrorMessage(error, "Erro ao atualizar a publicação. Verifique os dados e tente novamente.")
       });
     } finally {
       setIsSubmitting(false);
@@ -116,6 +123,12 @@ export default function EditarPublicacao() {
       </Link>
 
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        {existingImages.length > 0 && <div className="p-6 grid grid-cols-2 gap-4">
+          {existingImages.map(image => {
+            const src = getMediaUrl(image.imagem);
+            return src ? <figure key={image.id}><Image unoptimized src={src} width={400} height={240} alt={image.descricao_acessivel} className="h-40 w-full rounded-xl object-cover" /><figcaption className="mt-2 text-sm text-slate-500">{image.descricao_acessivel}</figcaption></figure> : null;
+          })}
+        </div>}
         <div className="p-6 md:p-8 border-b border-slate-100">
           <h2 className="text-xl font-bold text-slate-800">Editar Publicação</h2>
           {statusAtual === 'rejeitado' && motivoRejeicao && (

@@ -31,7 +31,7 @@ class PublicationSerializer(serializers.ModelSerializer):
         required=False
     )
     descricoes_imagens = serializers.ListField(
-        child=serializers.CharField(),
+        child=serializers.CharField(max_length=255),
         write_only=True,
         required=False
     )
@@ -52,6 +52,18 @@ class PublicationSerializer(serializers.ModelSerializer):
 
     def get_likes_count(self, obj):
         return obj.curtidas.count()
+
+    def validate_status(self, value):
+        request = self.context.get('request')
+        if request and request.user.role != 'admin' and value not in ('rascunho', 'pendente'):
+            raise serializers.ValidationError('Envie a publicação para aprovação.')
+        return value
+
+    def validate(self, attrs):
+        existing = self.instance.imagens.count() if self.instance else 0
+        if existing + len(attrs.get('novas_imagens', [])) > 5:
+            raise serializers.ValidationError({'novas_imagens': 'O limite é de cinco imagens por publicação.'})
+        return attrs
         
     def get_comments_count(self, obj):
         return obj.comentarios.filter(ativo=True).count()

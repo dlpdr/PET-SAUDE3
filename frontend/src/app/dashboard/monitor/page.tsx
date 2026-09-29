@@ -4,6 +4,7 @@ import { Clock, CheckCircle2, XCircle, FileEdit, ArrowUpRight, Loader2 } from "l
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 interface Publication {
   id: number;
@@ -14,8 +15,10 @@ interface Publication {
 }
 
 export default function MonitorDashboard() {
+  const { isLoading: isCheckingAuth } = useRequireAuth(["monitor", "admin"]);
   const [posts, setPosts] = useState<Publication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchMyPosts = async () => {
@@ -24,6 +27,7 @@ export default function MonitorDashboard() {
         setPosts(response.data);
       } catch (error) {
         console.error("Erro ao buscar publicações", error);
+        setError('Não foi possível carregar suas publicações. Recarregue a página para tentar novamente.');
       } finally {
         setIsLoading(false);
       }
@@ -37,6 +41,10 @@ export default function MonitorDashboard() {
     { label: "Rascunhos", value: posts.filter(p => p.status === 'rascunho').length, icon: FileEdit, color: "text-slate-600", bg: "bg-slate-100" },
     { label: "Rejeitados", value: posts.filter(p => p.status === 'rejeitado').length, icon: XCircle, color: "text-red-600", bg: "bg-red-100" },
   ];
+
+  if (isCheckingAuth) {
+    return <div className="flex min-h-screen items-center justify-center gap-3 text-slate-600"><Loader2 className="animate-spin" /> Verificando acesso...</div>;
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -58,6 +66,7 @@ export default function MonitorDashboard() {
 
   return (
     <div className="flex flex-col gap-8 pb-12">
+      {error && <p role="alert" className="rounded-xl bg-red-50 p-4 text-red-700">{error}</p>}
       
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -130,7 +139,7 @@ export default function MonitorDashboard() {
           </div>
         )}
         
-        {!isLoading && posts.length === 0 && (
+        {!error && !isLoading && posts.length === 0 && (
           <div className="p-12 text-center flex flex-col items-center">
             <FileEdit size={48} className="text-slate-300 mb-4" />
             <p className="text-slate-500 font-medium">Você ainda não tem nenhuma publicação.</p>

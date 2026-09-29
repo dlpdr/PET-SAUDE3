@@ -1,31 +1,39 @@
 import { NextRequest } from 'next/server';
+import { backendUrl } from '@/lib/backend';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://18.117.173.196/api';
-
-export async function ANY(req: NextRequest, props: { params: Promise<{ slug: string[] }> }) {
+async function handleRequest(req: NextRequest, props: { params: Promise<{ slug: string[] }> }) {
   const params = await props.params;
-  const slug = params.slug.join('/');
+  if (params.slug.some(part => part === '.' || part === '..' || /[/\\]/.test(part))) {
+    return Response.json({ detail: 'Caminho inválido.' }, { status: 400 });
+  }
+  const slug = params.slug.map(encodeURIComponent).join('/');
   
   // Get query params
   const searchParams = req.nextUrl.searchParams.toString();
   const queryString = searchParams ? `?${searchParams}` : '';
   
-  const targetUrl = `${BACKEND_URL}/${slug}/${queryString}`;
   
-  const headers = new Headers(req.headers);
-  headers.delete('host'); // Let fetch set the host
-  headers.delete('referer');
+  const headers = new Headers();
+  for (const name of ['authorization', 'content-type', 'accept']) {
+    const value = req.headers.get(name);
+    if (value) headers.set(name, value);
+  }
 
   try {
+    const targetUrl = new URL(`${slug}/${queryString}`, backendUrl());
     const response = await fetch(targetUrl, {
       method: req.method,
       headers: headers,
       body: req.method !== 'GET' && req.method !== 'HEAD' ? await req.blob() : undefined,
       redirect: 'manual',
+      cache: 'no-store',
     });
 
     const responseHeaders = new Headers(response.headers);
     responseHeaders.delete('content-encoding');
+    responseHeaders.delete('content-length');
+    responseHeaders.delete('set-cookie');
+    responseHeaders.set('cache-control', 'no-store');
 
     return new Response(response.body, {
       status: response.status,
@@ -41,8 +49,8 @@ export async function ANY(req: NextRequest, props: { params: Promise<{ slug: str
 }
 
 // Next.js requires exporting supported methods explicitly
-export const GET = ANY;
-export const POST = ANY;
-export const PUT = ANY;
-export const PATCH = ANY;
-export const DELETE = ANY;
+export const GET = handleRequest;
+export const POST = handleRequest;
+export const PUT = handleRequest;
+export const PATCH = handleRequest;
+export const DELETE = handleRequest;

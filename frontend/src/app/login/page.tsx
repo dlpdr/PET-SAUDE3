@@ -5,10 +5,13 @@ import { Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import api from "@/lib/api";
+import { useRouter } from "next/navigation";
+import api, { getApiErrorMessage } from "@/lib/api";
 import Cookies from "js-cookie";
+import GoogleLogin from '@/components/GoogleLogin';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -29,25 +32,24 @@ export default function LoginPage() {
       const { access, refresh, role } = response.data;
       
       // Salva os tokens e o tipo de usuário nos cookies (válidos por 1 dia)
-      Cookies.set('access_token', access, { expires: 1 });
-      Cookies.set('refresh_token', refresh, { expires: 1 });
-      Cookies.set('user_role', role, { expires: 1 });
+      const options = { expires: 1, sameSite: 'lax' as const, secure: window.location.protocol === 'https:' };
+      Cookies.set('access_token', access, options);
+      Cookies.set('refresh_token', refresh, options);
+      Cookies.set('user_role', role, options);
+      window.dispatchEvent(new Event('auth-change'));
 
       // Redireciona baseado no role
       if (role === 'admin') {
-        window.location.href = '/dashboard/admin';
+        router.push('/dashboard/admin');
       } else if (role === 'monitor') {
-        window.location.href = '/dashboard/monitor';
+        router.push('/dashboard/monitor');
       } else {
-        window.location.href = '/publicacoes'; // visitante comum
+        router.push('/publicacoes'); // visitante comum
       }
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      setErrorMsg(
-        error.response?.data?.detail || 
-        "Falha ao entrar. Verifique seu e-mail e senha."
-      );
+      setErrorMsg(getApiErrorMessage(error, "Falha ao entrar. Verifique seu e-mail e senha."));
     } finally {
       setIsLoading(false);
     }
@@ -73,6 +75,10 @@ export default function LoginPage() {
         </div>
 
         <h1 className="text-2xl font-bold text-slate-900 mb-2">Bem-vindo de volta</h1>
+        <div className="mb-4 flex flex-wrap justify-center gap-4 text-sm text-blue-700 underline">
+          <Link href="/recuperar-senha">Esqueci minha senha</Link>
+          <Link href="/reenviar-confirmacao">Reenviar confirmação de e-mail</Link>
+        </div>
         <p className="text-slate-500 text-sm mb-8 text-center">Entre na sua conta para acessar o acervo e interagir com as publicações.</p>
 
         {errorMsg && (
@@ -91,6 +97,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="E-mail ou nome de usuário (ex: admin)" 
+              aria-label="E-mail ou nome de usuário" autoComplete="username"
               className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all"
               required
             />
@@ -105,6 +112,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Sua senha" 
+              aria-label="Senha" autoComplete="current-password"
               className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all"
               required
             />
@@ -125,19 +133,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="w-full flex items-center gap-4 my-6">
-          <div className="h-px bg-slate-200 flex-1" />
-          <span className="text-xs text-slate-400 uppercase tracking-wider">ou</span>
-          <div className="h-px bg-slate-200 flex-1" />
-        </div>
-
-        <button 
-          type="button"
-          className="w-full flex items-center justify-center gap-3 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-slate-50 transition-all shadow-sm"
-        >
-          <Image src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width={20} height={20} />
-          Continuar com o Google
-        </button>
+        <GoogleLogin />
 
         <p className="mt-8 text-sm text-slate-500">
           Ainda não tem uma conta?{" "}
