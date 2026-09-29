@@ -14,6 +14,7 @@ export default function NovaPublicacao() {
   const [categoria, setCategoria] = useState("");
   const [texto, setTexto] = useState("");
   const [dataAtividade, setDataAtividade] = useState("");
+  const [imagemCapa, setImagemCapa] = useState<{ file: File; preview: string } | null>(null);
   const [imagens, setImagens] = useState<{ file: File; descricao: string; preview: string }[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
@@ -37,17 +38,16 @@ export default function NovaPublicacao() {
       if (dataAtividade) {
         formData.append("data_atividade", dataAtividade);
       }
+      if (imagemCapa) {
+        formData.append("imagem_capa", imagemCapa.file);
+      }
 
       imagens.forEach((imagem, index) => {
         formData.append("novas_imagens", imagem.file);
         formData.append("descricoes_imagens", imagem.descricao || `Imagem ${index + 1}`);
       });
 
-      await api.post('/publications/manage/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      await api.post('/publications/manage/', formData);
       
       setFeedback({ type: 'success', message: "Publicação salva com sucesso! Redirecionando..." });
       
@@ -130,6 +130,47 @@ export default function NovaPublicacao() {
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all text-slate-700"
                 />
               </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-slate-700">Imagem de Capa (Opcional)</label>
+              <p className="text-xs text-slate-500 mb-2">Esta imagem ficará em destaque no topo da publicação.</p>
+              {imagemCapa ? (
+                <div className="flex gap-3 rounded-xl border border-slate-200 p-3 items-center">
+                  <Image unoptimized width={96} height={96} src={imagemCapa.preview} alt="Prévia da capa" className="h-24 w-32 rounded-lg object-cover bg-slate-100" />
+                  <div className="min-w-0 flex-1 flex flex-col gap-2">
+                    <p className="truncate text-xs text-slate-500 font-medium">{imagemCapa.file.name}</p>
+                    <p className="text-xs text-[var(--color-brand-blue-light)]">Imagem selecionada para capa</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      URL.revokeObjectURL(imagemCapa.preview);
+                      setImagemCapa(null);
+                    }}
+                    className="self-start rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <UploadCloud className="w-8 h-8 mb-3 text-slate-400" />
+                    <p className="mb-2 text-sm text-slate-500"><span className="font-semibold">Clique para enviar a capa</span> ou arraste e solte</p>
+                    <p className="text-xs text-slate-500">SVG, PNG, JPG ou GIF (MAX. 800x400px)</p>
+                  </div>
+                  <input 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setImagemCapa({ file, preview: URL.createObjectURL(file) });
+                    }}
+                  />
+                </label>
+              )}
             </div>
 
             <div className="flex flex-col gap-2">

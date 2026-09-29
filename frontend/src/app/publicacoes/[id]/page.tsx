@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, User, Share2, Download, Tag, Heart, MessageCircle, Send, Loader2, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Calendar, User, Share2, Download, Tag, Heart, MessageCircle, Send, Loader2, AlertCircle, ChevronLeft, ChevronRight, Image as ImageLucide } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -200,19 +200,9 @@ export default function PublicacaoDetalhe() {
     );
   }
 
-  const imagensArray = post.imagens && post.imagens.length > 0 
-    ? post.imagens.map((i) => getMediaUrl(i.imagem))
-    : [getDefaultImage(post.categoria)];
-
+  const capaUrl = post.imagem_capa ? getMediaUrl(post.imagem_capa) : getDefaultImage(post.categoria);
   const autorNome = post.autor ? `${post.autor.first_name} ${post.autor.last_name}` : "Autor desconhecido";
-
-  const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev === imagensArray.length - 1 ? 0 : prev + 1));
-  };
-
-  const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev === 0 ? imagensArray.length - 1 : prev - 1));
-  };
+  const imagensGaleria = post.imagens || [];
 
   return (
     <div className="flex flex-col items-center w-full min-h-screen bg-white">
@@ -227,37 +217,9 @@ export default function PublicacaoDetalhe() {
       <section className="w-full relative h-[40vh] min-h-[300px] flex items-end justify-center group overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center transition-all duration-500 ease-in-out"
-          style={{ backgroundImage: `url(${imagensArray[currentImageIndex]})` }}
+          style={{ backgroundImage: `url(${capaUrl})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
-        
-        {imagensArray.length > 1 && (
-          <>
-            <button 
-              onClick={prevImage} aria-label="Imagem anterior"
-              className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/30 hover:bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all z-20 backdrop-blur-sm print:hidden"
-            >
-              <ChevronLeft size={24} />
-            </button>
-            <button 
-              onClick={nextImage} aria-label="Próxima imagem"
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/30 hover:bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all z-20 backdrop-blur-sm print:hidden"
-            >
-              <ChevronRight size={24} />
-            </button>
-            
-            {/* Dots */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20 print:hidden">
-              {imagensArray.map((_, idx) => (
-                <button 
-                  key={idx}
-                  onClick={() => setCurrentImageIndex(idx)} aria-label={`Ver imagem ${idx + 1}`}
-                  className={`w-2 h-2 rounded-full transition-all ${idx === currentImageIndex ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80'}`}
-                />
-              ))}
-            </div>
-          </>
-        )}
         
         <div className="w-full max-w-4xl mx-auto px-6 relative z-10 pb-12">
           <Link href="/publicacoes" className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors mb-6 text-sm font-medium print:hidden">
@@ -337,6 +299,26 @@ export default function PublicacaoDetalhe() {
                   </figure>
                 ) : null;
               })}
+            </div>
+          )}
+
+          {/* Galeria de Fotos Extras */}
+          {imagensGaleria.length > 0 && (
+            <div className="mt-12 mb-8">
+              <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <ImageLucide size={24} className="text-[var(--color-brand-blue-light)]" />
+                Galeria de Fotos
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {imagensGaleria.map((img, idx) => (
+                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden group bg-slate-100 cursor-pointer" onClick={() => window.open(getMediaUrl(img.imagem), '_blank')}>
+                    <Image unoptimized src={getMediaUrl(img.imagem)} alt={img.descricao || `Foto ${idx + 1}`} fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                      {img.descricao && <p className="text-white text-xs font-medium line-clamp-2">{img.descricao}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

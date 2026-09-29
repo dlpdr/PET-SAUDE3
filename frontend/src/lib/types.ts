@@ -19,6 +19,7 @@ export interface PublicationSummary {
   categoria: string;
   data_publicacao: string | null;
   criado_em?: string;
+  imagem_capa?: string | null;
   imagens: PublicationImage[];
 }
 
