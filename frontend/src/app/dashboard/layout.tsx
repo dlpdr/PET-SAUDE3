@@ -35,6 +35,7 @@ export default function DashboardLayout({
   const adminNavItems = [
     { name: "Fila de Aprovação", href: "/dashboard/admin", icon: CheckSquare },
     { name: "Gerenciar Monitores", href: "/dashboard/admin/monitores", icon: Users },
+    { name: "Nova Publicação", href: "/dashboard/monitor/nova-publicacao", icon: PlusCircle },
     { name: "Acervo Completo", href: "/publicacoes", icon: Library },
   ];
 

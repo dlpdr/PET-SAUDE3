@@ -47,7 +47,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center w-full overflow-hidden">
+    <div id="inicio" className="flex flex-col items-center justify-center w-full overflow-hidden">
       
       {/* Hero Section */}
       <section className="relative w-full max-w-6xl mx-auto px-6 pt-20 pb-24 flex flex-col items-center text-center">
@@ -91,9 +91,6 @@ export default function Home() {
             Explorar o Acervo
             <ArrowRight size={18} />
           </Link>
-          <Link href="/sobre" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-slate-700 border border-slate-200 rounded-full font-medium hover:bg-slate-50 hover:border-slate-300 transition-all">
-            Conhecer o Projeto
-          </Link>
         </motion.div>
       </section>
 
@@ -122,7 +119,7 @@ export default function Home() {
       </section>
 
       {/* Latest Publications Vitrine */}
-      <section className="w-full max-w-6xl mx-auto px-6 py-24" id="publicacoes">
+      <section className="w-full max-w-6xl mx-auto px-6 py-24" id="acervo">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
           <div>
             <h2 className="text-3xl font-bold text-slate-900 mb-2">Trabalhos Recentes</h2>
@@ -191,7 +188,7 @@ export default function Home() {
       </section>
 
       {/* Tipos de Conteúdo (Bento Grid) */}
-      <section className="w-full max-w-6xl mx-auto px-6 pb-32" id="tipos">
+      <section className="w-full max-w-6xl mx-auto px-6 pb-32" id="sobre">
         <div className="mb-12">
           <h2 className="text-3xl font-bold text-slate-900 mb-2">O que você encontra aqui?</h2>
           <p className="text-slate-600">Nossa plataforma organiza e centraliza todo o conhecimento gerado.</p>

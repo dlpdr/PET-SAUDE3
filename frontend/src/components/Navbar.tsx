@@ -47,9 +47,9 @@ export default function Navbar() {
       
       <button type="button" aria-expanded={menuOpen} aria-controls="public-navigation" onClick={() => setMenuOpen(value => !value)} className="rounded-lg border px-3 py-2 text-sm md:hidden">{menuOpen ? 'Fechar menu' : 'Menu'}</button>
       <div id="public-navigation" onClick={() => setMenuOpen(false)} className={`${menuOpen ? 'flex' : 'hidden'} order-last w-full flex-wrap md:order-none md:w-auto md:flex items-center gap-4 text-sm font-medium text-[var(--color-brand-blue-dark)]`}>
-        <Link href="/" className="hover:text-[var(--color-brand-orange)] transition-colors">Início</Link>
-        <Link href="/sobre" className="hover:text-[var(--color-brand-orange)] transition-colors">Sobre</Link>
-        <Link href="/publicacoes" className="hover:text-[var(--color-brand-orange)] transition-colors">Acervo</Link>
+        <Link href="/#inicio" className="hover:text-[var(--color-brand-orange)] transition-colors">Início</Link>
+        <Link href="/#acervo" className="hover:text-[var(--color-brand-orange)] transition-colors">Acervo</Link>
+        <Link href="/#sobre" className="hover:text-[var(--color-brand-orange)] transition-colors">Sobre</Link>
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-2">
