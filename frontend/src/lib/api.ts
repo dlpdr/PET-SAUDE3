@@ -100,17 +100,26 @@ export function getApiErrorMessage(
 }
 
 /**
- * Encaminha uploads pelo proxy /media para preservar o HTTPS do frontend.
- * Imagens externas são aceitas somente com HTTPS.
+ * Normalizes media URLs from the backend.
+ * The Django backend returns absolute URLs like http://18.117.173.196/media/...
+ * We extract only the pathname (/media/...) so the browser fetches it from
+ * the Next.js /media proxy which forwards to the backend over the internal network.
+ * External HTTPS URLs (e.g. Unsplash) are returned as-is.
  */
 export function getMediaUrl(relativeUrl: string | null | undefined): string | null {
   if (!relativeUrl) return null;
   try {
-    const url = new URL(relativeUrl, 'https://media.local/');
-    if (!['http:', 'https:'].includes(url.protocol)) return null;
-    // Backend uploads always travel through our HTTPS origin.
+    // If it's already a relative path starting with /media/, return as-is
+    if (relativeUrl.startsWith('/media/')) return relativeUrl;
+    // If it's a relative path like "publications/covers/file.jpg" (no leading slash)
+    if (!relativeUrl.startsWith('http')) return `/media/${relativeUrl}`;
+    // Parse absolute URL
+    const url = new URL(relativeUrl);
+    // Backend URLs (http or https): extract the path so we proxy through Next.js
     if (url.pathname.startsWith('/media/')) return `${url.pathname}${url.search}`;
-    return url.protocol === 'https:' && url.hostname !== 'media.local' ? url.href : null;
+    // External HTTPS URLs (e.g. Unsplash CDN)
+    if (url.protocol === 'https:') return url.href;
+    return null;
   } catch {
     return null;
   }

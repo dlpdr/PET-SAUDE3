@@ -6,7 +6,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ pat
     return new Response(null, { status: 400 });
   }
   try {
-    const url = new URL(`/media/${path.map(encodeURIComponent).join('/')}`, backendUrl());
+    const backend = backendUrl();
+    // Strip /api/ suffix so we hit the root (where /media/ lives)
+    const backendRoot = new URL('/', backend);
+    const url = new URL(`/media/${path.map(encodeURIComponent).join('/')}`, backendRoot);
     const response = await fetch(url, { redirect: 'error', cache: 'no-store' });
     if (!response.ok) return new Response(null, { status: response.status });
     const contentType = response.headers.get('content-type') || '';
