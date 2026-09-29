@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Save, Send, Loader2, CheckCircle2, Plus, X } from "lucide-react";
+import { ArrowLeft, Save, Send, Loader2, CheckCircle2, Plus, X, UploadCloud } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

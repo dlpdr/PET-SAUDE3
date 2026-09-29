@@ -200,7 +200,7 @@ export default function PublicacaoDetalhe() {
     );
   }
 
-  const capaUrl = post.imagem_capa ? getMediaUrl(post.imagem_capa) : getDefaultImage(post.categoria);
+  const capaUrl = (post.imagem_capa ? getMediaUrl(post.imagem_capa) : null) || getDefaultImage(post.categoria);
   const autorNome = post.autor ? `${post.autor.first_name} ${post.autor.last_name}` : "Autor desconhecido";
   const imagensGaleria = post.imagens || [];
 
@@ -310,14 +310,17 @@ export default function PublicacaoDetalhe() {
                 Galeria de Fotos
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {imagensGaleria.map((img, idx) => (
-                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden group bg-slate-100 cursor-pointer" onClick={() => window.open(getMediaUrl(img.imagem), '_blank')}>
-                    <Image unoptimized src={getMediaUrl(img.imagem)} alt={img.descricao || `Foto ${idx + 1}`} fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                      {img.descricao && <p className="text-white text-xs font-medium line-clamp-2">{img.descricao}</p>}
+                {imagensGaleria.map((img, idx) => {
+                  const mediaUrl = getMediaUrl(img.imagem);
+                  return (
+                    <div key={idx} className="relative aspect-square rounded-xl overflow-hidden group bg-slate-100 cursor-pointer" onClick={() => mediaUrl && window.open(mediaUrl, '_blank')}>
+                      <Image unoptimized src={mediaUrl || ''} alt={img.descricao_acessivel || `Foto ${idx + 1}`} fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                        {img.descricao_acessivel && <p className="text-white text-xs font-medium line-clamp-2">{img.descricao_acessivel}</p>}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
