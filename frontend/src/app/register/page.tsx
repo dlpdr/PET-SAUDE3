@@ -82,10 +82,6 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <form onSubmit={handleRegister} className="w-full flex flex-col gap-4">
-          <div className="flex gap-4">
-            <div className="relative flex-1">
-              <input 
         <form onSubmit={handleRegister} className="w-full flex flex-col gap-5">
           <div className="flex flex-col md:flex-row gap-5">
             <div className="relative group flex-1">
