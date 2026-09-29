@@ -47,7 +47,11 @@ export default function NovaPublicacao() {
         formData.append("descricoes_imagens", imagem.descricao || `Imagem ${index + 1}`);
       });
 
-      await api.post('/publications/manage/', formData);
+      await api.post('/publications/manage/', formData, {
+        headers: {
+          'Content-Type': undefined
+        }
+      });
       
       setFeedback({ type: 'success', message: "Publicação salva com sucesso! Redirecionando..." });
       
