@@ -153,7 +153,7 @@ export default function Home() {
                 <Link href={`/publicacoes/${post.id}`} className="block relative h-48 w-full overflow-hidden bg-slate-100">
                   <div 
                     className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500" 
-                    style={{ backgroundImage: `url(${getMediaUrl(post.imagens?.[0]?.imagem) || getDefaultImage(post.categoria)})` }}
+                    style={{ backgroundImage: `url(${(post.imagem_capa ? getMediaUrl(post.imagem_capa) : null) || getDefaultImage(post.categoria)})` }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                   <div className="absolute bottom-4 left-4">

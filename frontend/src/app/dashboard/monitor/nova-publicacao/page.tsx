@@ -23,8 +23,8 @@ export default function NovaPublicacao() {
     e.preventDefault();
     setFeedback(null);
 
-    if (!titulo || !categoria || !texto) {
-      setFeedback({ type: 'error', message: "Por favor, preencha todos os campos obrigatórios." });
+    if (!titulo || !categoria || !texto || !imagemCapa) {
+      setFeedback({ type: 'error', message: "Por favor, preencha todos os campos obrigatórios e anexe uma imagem de capa." });
       return;
     }
     
@@ -137,8 +137,8 @@ export default function NovaPublicacao() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-slate-700">Imagem de Capa (Opcional)</label>
-              <p className="text-xs text-slate-500 mb-2">Esta imagem ficará em destaque no topo da publicação.</p>
+              <label className="text-sm font-semibold text-slate-700">Imagem de Capa *</label>
+              <p className="text-xs text-slate-500 mb-2">Esta imagem ficará em destaque no topo da publicação (Obrigatória).</p>
               {imagemCapa ? (
                 <div className="flex gap-3 rounded-xl border border-slate-200 p-3 items-center">
                   <Image unoptimized width={96} height={96} src={imagemCapa.preview} alt="Prévia da capa" className="h-24 w-32 rounded-lg object-cover bg-slate-100" />
