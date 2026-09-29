@@ -30,6 +30,9 @@ export default function AdminDashboard() {
   const [feedback, setFeedback] = useState("");
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [approvingId, setApprovingId] = useState<number | null>(null);
+  const [takedownId, setTakedownId] = useState<number | null>(null);
+  const [takedownReason, setTakedownReason] = useState('');
   const [loadError, setLoadError] = useState(false);
   
   const currentPosts = activeTab === "pendentes" ? pendingPosts : publishedPosts;
@@ -64,19 +67,19 @@ export default function AdminDashboard() {
     return new Date(isoStr).toLocaleDateString('pt-BR');
   };
 
-  const handleApprove = async (id: number) => {
-    if (confirm("Deseja realmente aprovar e publicar este conteúdo no site?")) {
-      setActionLoading(id);
-      try {
-        const result = await api.post<{ email_sent?: boolean }>(`/publications/manage/${id}/approve/`);
-        setFeedback(result.data.email_sent === false ? 'Publicação aprovada, mas o e-mail não foi enviado. Verifique o serviço de e-mail.' : 'Publicação aprovada e autor notificado.');
-        fetchPosts();
-      } catch (error) {
-        console.error("Erro ao aprovar:", error);
-        setFeedback("Erro ao aprovar a publicação. Tente novamente.");
-      } finally {
-        setActionLoading(null);
-      }
+  const confirmApprove = async () => {
+    if (!approvingId) return;
+    setActionLoading(approvingId);
+    try {
+      const result = await api.post<{ email_sent?: boolean }>(`/publications/manage/${approvingId}/approve/`);
+      setFeedback(result.data.email_sent === false ? 'Publicação aprovada, mas o e-mail não foi enviado.' : 'Publicação aprovada e autor notificado.');
+      fetchPosts();
+      setApprovingId(null);
+    } catch (error) {
+      console.error("Erro ao aprovar:", error);
+      setFeedback("Erro ao aprovar a publicação.");
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -99,21 +102,21 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleTirarDoAr = async (id: number) => {
-    const motivo = prompt("Tem certeza que deseja TIRAR ESTA PUBLICAÇÃO DO AR? Informe o motivo:");
-    if (motivo !== null) {
-      setActionLoading(id);
-      try {
-        await api.post(`/publications/manage/${id}/reject/`, { motivo: `Removido do ar pelo Admin: ${motivo}` });
-        setFeedback("Publicação removida do ar com sucesso!");
-        setTimeout(() => setFeedback(""), 3000);
-        fetchPosts();
-      } catch (error) {
-        console.error("Erro ao tirar do ar:", error);
-        setFeedback("Erro ao tirar a publicação do ar.");
-      } finally {
-        setActionLoading(null);
-      }
+  const confirmTakedown = async () => {
+    if (!takedownId || !takedownReason.trim()) return;
+    setActionLoading(takedownId);
+    try {
+      await api.post(`/publications/manage/${takedownId}/reject/`, { motivo: `Removido do ar pelo Admin: ${takedownReason}` });
+      setFeedback("Publicação removida do ar com sucesso!");
+      setTimeout(() => setFeedback(""), 3000);
+      fetchPosts();
+      setTakedownId(null);
+      setTakedownReason("");
+    } catch (error) {
+      console.error("Erro ao tirar do ar:", error);
+      setFeedback("Erro ao tirar a publicação do ar.");
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -124,11 +127,60 @@ export default function AdminDashboard() {
   return (
     <div className="flex flex-col gap-8 pb-12">
       {feedback && <p role="status" className="text-slate-700">{feedback}</p>}
-      {rejectingId !== null && <form onSubmit={event => { event.preventDefault(); void handleReject(rejectingId); }} className="rounded-xl border border-red-200 bg-red-50 p-5">
-        <label htmlFor="rejection-reason" className="font-semibold text-red-900">Motivo da rejeição: {pendingPosts.find(post => post.id === rejectingId)?.titulo}</label>
-        <textarea id="rejection-reason" required value={rejectionReason} onChange={event => setRejectionReason(event.target.value)} className="my-3 w-full rounded-lg border bg-white p-3" />
-        <div className="flex gap-3"><button disabled={actionLoading !== null || !rejectionReason.trim()} className="rounded-lg bg-red-700 px-4 py-2 text-white disabled:opacity-50">Confirmar rejeição</button><button type="button" disabled={actionLoading !== null} onClick={() => { setRejectingId(null); setRejectionReason(''); }} className="rounded-lg border px-4 py-2">Cancelar</button></div>
-      </form>}
+      {/* Overlay Modals */}
+      {rejectingId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <form onSubmit={event => { event.preventDefault(); void handleReject(rejectingId); }} className="w-full max-w-lg rounded-2xl bg-white p-6 md:p-8 shadow-xl">
+            <h3 className="text-xl font-bold text-slate-800 mb-2">Rejeitar Publicação</h3>
+            <p className="text-sm text-slate-500 mb-4">
+              Por que a publicação <strong>"{pendingPosts.find(post => post.id === rejectingId)?.titulo}"</strong> não pode ser aprovada? O autor receberá este feedback.
+            </p>
+            <textarea id="rejection-reason" required value={rejectionReason} onChange={event => setRejectionReason(event.target.value)} placeholder="Descreva o motivo (ex: Precisa revisar a ortografia...)" className="mb-6 w-full rounded-xl border border-slate-200 bg-slate-50 p-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-red-500" />
+            <div className="flex flex-col sm:flex-row justify-end gap-3">
+              <button type="button" disabled={actionLoading !== null} onClick={() => { setRejectingId(null); setRejectionReason(''); }} className="rounded-xl border border-slate-200 px-6 py-2.5 text-slate-600 font-medium hover:bg-slate-50">Cancelar</button>
+              <button disabled={actionLoading !== null || !rejectionReason.trim()} className="flex items-center justify-center gap-2 rounded-xl bg-red-600 px-6 py-2.5 text-white font-medium hover:bg-red-700 disabled:opacity-50">
+                {actionLoading === rejectingId ? <Loader2 size={18} className="animate-spin" /> : null} Confirmar Rejeição
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {approvingId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 md:p-8 shadow-xl text-center">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 text-green-600"><CheckSquare size={32} /></div>
+            <h3 className="text-xl font-bold text-slate-800 mb-2">Aprovar Publicação</h3>
+            <p className="text-sm text-slate-500 mb-8">
+              Tem certeza que deseja aprovar e publicar <strong>"{pendingPosts.find(post => post.id === approvingId)?.titulo}"</strong>? O conteúdo ficará visível publicamente no acervo.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-3">
+              <button type="button" disabled={actionLoading !== null} onClick={() => setApprovingId(null)} className="rounded-xl border border-slate-200 px-6 py-2.5 text-slate-600 font-medium hover:bg-slate-50">Cancelar</button>
+              <button onClick={confirmApprove} disabled={actionLoading !== null} className="flex items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-2.5 text-white font-medium hover:bg-green-700 disabled:opacity-50">
+                {actionLoading === approvingId ? <Loader2 size={18} className="animate-spin" /> : null} Publicar Agora
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {takedownId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 md:p-8 shadow-xl">
+            <h3 className="text-xl font-bold text-slate-800 mb-2">Tirar do Ar</h3>
+            <p className="text-sm text-slate-500 mb-4">
+              Por que <strong>"{publishedPosts.find(post => post.id === takedownId)?.titulo}"</strong> precisa ser removido? O autor será notificado e a publicação voltará para a aba de Rejeitados do monitor.
+            </p>
+            <textarea required value={takedownReason} onChange={event => setTakedownReason(event.target.value)} placeholder="Informe o motivo da remoção..." className="mb-6 w-full rounded-xl border border-slate-200 bg-slate-50 p-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-orange-500" />
+            <div className="flex flex-col sm:flex-row justify-end gap-3">
+              <button type="button" disabled={actionLoading !== null} onClick={() => { setTakedownId(null); setTakedownReason(''); }} className="rounded-xl border border-slate-200 px-6 py-2.5 text-slate-600 font-medium hover:bg-slate-50">Cancelar</button>
+              <button onClick={confirmTakedown} disabled={actionLoading !== null || !takedownReason.trim()} className="flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-6 py-2.5 text-white font-medium hover:bg-orange-700 disabled:opacity-50">
+                {actionLoading === takedownId ? <Loader2 size={18} className="animate-spin" /> : null} Tirar do Ar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {stats && <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           ['Publicadas', stats.total_publicadas], ['Em análise', stats.total_pendentes],
@@ -232,7 +284,7 @@ export default function AdminDashboard() {
                             Rejeitar
                           </button>
                           <button 
-                            onClick={() => handleApprove(post.id)}
+                            onClick={() => setApprovingId(post.id)}
                             disabled={actionLoading === post.id}
                             className="inline-flex items-center gap-1 px-4 py-2 bg-green-50 text-green-700 text-sm font-medium rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50"
                           >
@@ -244,7 +296,7 @@ export default function AdminDashboard() {
 
                       {activeTab === 'publicados' && (
                         <button 
-                          onClick={() => handleTirarDoAr(post.id)}
+                          onClick={() => { setTakedownId(post.id); setTakedownReason(''); }}
                           disabled={actionLoading === post.id}
                           className="inline-flex items-center gap-1 px-4 py-2 bg-orange-50 text-orange-600 text-sm font-medium rounded-lg hover:bg-orange-100 transition-colors disabled:opacity-50"
                         >

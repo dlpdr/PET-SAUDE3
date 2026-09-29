@@ -17,7 +17,7 @@ export default function NovaPublicacao() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent, status: "rascunho" | "pendente") => {
+  const handleSubmit = async (e: React.FormEvent, status: "rascunho" | "pendente" | "publicado") => {
     e.preventDefault();
     setFeedback(null);
 
@@ -51,7 +51,8 @@ export default function NovaPublicacao() {
       setFeedback({ type: 'success', message: "Publicação salva com sucesso! Redirecionando..." });
       
       setTimeout(() => {
-        router.push('/dashboard/monitor');
+        const role = document.cookie.includes('user_role=admin') ? 'admin' : 'monitor';
+        router.push(`/dashboard/${role}`);
       }, 1500);
 
     } catch (error: unknown) {
@@ -65,9 +66,11 @@ export default function NovaPublicacao() {
     }
   };
 
+  const isAdmin = typeof document !== 'undefined' && document.cookie.includes('user_role=admin');
+
   return (
     <div className="flex flex-col gap-6 pb-12">
-      <Link href="/dashboard/monitor" className="flex items-center gap-2 text-slate-500 hover:text-slate-800 w-fit transition-colors">
+      <Link href={`/dashboard/${isAdmin ? 'admin' : 'monitor'}`} className="flex items-center gap-2 text-slate-500 hover:text-slate-800 w-fit transition-colors">
         <ArrowLeft size={18} />
         <span className="text-sm font-medium">Voltar para o Painel</span>
       </Link>
@@ -209,11 +212,11 @@ export default function NovaPublicacao() {
               <button 
                 type="button"
                 disabled={isSubmitting}
-                onClick={(e) => handleSubmit(e, "pendente")}
+                onClick={(e) => handleSubmit(e, isAdmin ? "publicado" : "pendente")}
                 className="flex items-center justify-center gap-2 px-6 py-3 bg-[var(--color-brand-green)] text-white rounded-xl font-medium hover:bg-emerald-700 transition-all shadow-sm disabled:opacity-50"
               >
                 {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />} 
-                Enviar para Aprovação
+                {isAdmin ? "Publicar Imediatamente" : "Enviar para Aprovação"}
               </button>
             </div>
 
