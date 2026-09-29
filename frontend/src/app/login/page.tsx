@@ -87,9 +87,9 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="w-full flex flex-col gap-4">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+        <form onSubmit={handleLogin} className="w-full flex flex-col gap-5">
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[var(--color-brand-blue-light)] transition-colors">
               <Mail size={18} />
             </div>
             <input 
@@ -98,13 +98,13 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="E-mail ou nome de usuário (ex: admin)" 
               aria-label="E-mail ou nome de usuário" autoComplete="username"
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all"
+              className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-slate-200 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all shadow-sm hover:shadow-md"
               required
             />
           </div>
 
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[var(--color-brand-blue-light)] transition-colors">
               <Lock size={18} />
             </div>
             <input 
@@ -113,13 +113,13 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Sua senha" 
               aria-label="Senha" autoComplete="current-password"
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all"
+              className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-slate-200 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue-light)] focus:border-transparent transition-all shadow-sm hover:shadow-md"
               required
             />
           </div>
 
           <div className="flex items-center justify-end mb-2">
-            <a href="#" className="text-xs font-medium text-[var(--color-brand-blue-light)] hover:text-[var(--color-brand-blue-dark)] transition-colors">
+            <a href="#" className="text-xs font-semibold text-slate-500 hover:text-[var(--color-brand-blue-light)] transition-colors">
               Esqueceu a senha?
             </a>
           </div>
@@ -127,7 +127,7 @@ export default function LoginPage() {
           <button 
             type="submit"
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-blue-dark)] text-white rounded-xl font-medium hover:bg-slate-800 transition-all hover:shadow-lg disabled:opacity-70"
+            className="w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-[var(--color-brand-blue-dark)] to-[var(--color-brand-blue-light)] text-white rounded-xl font-semibold hover:shadow-[0_8px_20px_rgba(74,144,226,0.3)] hover:-translate-y-0.5 active:scale-95 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isLoading ? <Loader2 size={18} className="animate-spin" /> : <>Entrar <ArrowRight size={18} /></>}
           </button>
@@ -135,9 +135,9 @@ export default function LoginPage() {
 
         <GoogleLogin />
 
-        <p className="mt-8 text-sm text-slate-500">
+        <p className="mt-8 text-sm text-slate-500 font-medium">
           Ainda não tem uma conta?{" "}
-          <Link href="/register" className="font-semibold text-[var(--color-brand-orange)] hover:text-orange-700 transition-colors">
+          <Link href="/register" className="font-bold text-[var(--color-brand-orange)] hover:text-orange-600 transition-colors hover:underline">
             Cadastre-se grátis
           </Link>
         </p>

@@ -71,30 +71,30 @@ export default function MonitorDashboard() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
-          <div key={stat.label} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center gap-4">
-            <div className={`h-14 w-14 rounded-xl flex items-center justify-center ${stat.bg} ${stat.color}`}>
+          <div key={stat.label} className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow group">
+            <div className={`h-14 w-14 rounded-2xl flex items-center justify-center ${stat.bg} ${stat.color} group-hover:scale-110 transition-transform`}>
               <stat.icon size={24} />
             </div>
             <div>
-              <p className="text-slate-500 text-sm font-medium">{stat.label}</p>
-              <h3 className="text-3xl font-bold text-slate-800">{stat.value}</h3>
+              <p className="text-slate-500 text-sm font-semibold">{stat.label}</p>
+              <h3 className="text-3xl font-extrabold text-slate-900">{stat.value}</h3>
             </div>
           </div>
         ))}
       </div>
 
       {/* Main Content Area */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col mt-4">
+        <div className="p-6 md:p-8 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg font-bold text-slate-800">Minhas Publicações</h2>
-            <p className="text-sm text-slate-500">Gerencie seus rascunhos e acompanhe o status de aprovação.</p>
+            <h2 className="text-xl font-bold text-slate-900">Minhas Publicações</h2>
+            <p className="text-sm text-slate-500 font-medium mt-1">Gerencie seus rascunhos e acompanhe o status de aprovação.</p>
           </div>
           <Link 
             href="/dashboard/monitor/nova-publicacao" 
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--color-brand-blue-dark)] text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors"
+            className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-[var(--color-brand-blue-dark)] to-[var(--color-brand-blue-light)] text-white text-sm font-bold rounded-xl hover:shadow-[0_8px_20px_rgba(74,144,226,0.3)] hover:-translate-y-0.5 active:scale-95 transition-all"
           >
-            Nova Publicação <ArrowUpRight size={16} />
+            Nova Publicação <ArrowUpRight size={18} />
           </Link>
         </div>
 

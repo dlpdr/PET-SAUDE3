@@ -116,39 +116,39 @@ export default function AcervoPage() {
             {filteredPosts.map((post, index) => (
               <motion.div 
                 key={post.id}
-                className="group bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 flex flex-col"
+                className="group bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-500 hover:-translate-y-2 flex flex-col"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
+                transition={{ delay: index * 0.05, duration: 0.6, ease: "easeOut" }}
               >
-                <Link href={`/publicacoes/${post.id}`} className="block relative h-48 w-full overflow-hidden bg-slate-100">
+                <Link href={`/publicacoes/${post.id}`} className="block relative h-56 w-full overflow-hidden bg-slate-100">
                   <div 
-                    className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500" 
+                    className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700 ease-in-out" 
                     style={{ backgroundImage: `url(${(post.imagem_capa ? getMediaUrl(post.imagem_capa) : null) || getDefaultImage(post.categoria)})` }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                  <div className="absolute bottom-4 left-4">
-                    <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-[var(--color-brand-blue-dark)] text-xs font-bold rounded-full">
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute bottom-4 left-5">
+                    <span className="px-4 py-1.5 bg-white/90 backdrop-blur-md text-[var(--color-brand-blue-dark)] text-xs font-bold rounded-full shadow-sm">
                       {post.categoria}
                     </span>
                   </div>
                 </Link>
-                <div className="p-6 flex flex-col flex-grow">
-                  <div className="flex items-center gap-2 text-slate-400 text-sm mb-3">
-                    <Calendar size={14} />
+                <div className="p-8 flex flex-col flex-grow relative bg-white">
+                  <div className="flex items-center gap-2 text-slate-400 text-sm mb-4 font-medium">
+                    <Calendar size={15} />
                     <span>{formatDate(post.data_publicacao)}</span>
                   </div>
                   <Link href={`/publicacoes/${post.id}`}>
-                    <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-[var(--color-brand-blue-light)] transition-colors line-clamp-2">
+                    <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-[var(--color-brand-blue-light)] transition-colors line-clamp-2 leading-tight">
                       {post.titulo}
                     </h3>
                   </Link>
-                  <p className="text-slate-600 text-sm line-clamp-3 mb-6 flex-grow">
+                  <p className="text-slate-500 text-sm line-clamp-3 mb-8 flex-grow leading-relaxed">
                     {post.texto.length > 150 ? post.texto.substring(0, 150) + "..." : post.texto}
                   </p>
-                  <div className="mt-auto">
-                    <Link href={`/publicacoes/${post.id}`} className="text-[var(--color-brand-blue-dark)] font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
-                      Ler publicação completa <ArrowRight size={14} />
+                  <div className="mt-auto pt-4 border-t border-slate-50">
+                    <Link href={`/publicacoes/${post.id}`} className="text-[var(--color-brand-blue-dark)] font-semibold text-sm flex items-center gap-1 group-hover:gap-3 transition-all duration-300">
+                      Ler publicação completa <ArrowRight size={16} />
                     </Link>
                   </div>
                 </div>

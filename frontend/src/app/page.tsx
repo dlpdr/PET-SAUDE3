@@ -50,46 +50,54 @@ export default function Home() {
     <div id="inicio" className="flex flex-col items-center justify-center w-full overflow-hidden">
       
       {/* Hero Section */}
-      <section className="relative w-full max-w-6xl mx-auto px-6 pt-20 pb-24 flex flex-col items-center text-center">
+      <section className="relative w-full max-w-6xl mx-auto px-6 pt-28 pb-28 flex flex-col items-center text-center">
+        {/* Background glow specific to Hero */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-gradient-to-tr from-blue-100/40 via-transparent to-orange-50/40 blur-3xl -z-10 rounded-full" />
+
         <motion.div 
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-[var(--color-brand-blue-dark)] text-sm font-medium mb-8 shadow-sm"
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-200 text-[var(--color-brand-blue-dark)] text-sm font-semibold mb-8 shadow-sm hover:shadow-md hover:border-blue-200 transition-all cursor-default"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
         >
-          <span className="relative flex h-2 w-2">
+          <span className="relative flex h-2.5 w-2.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
           </span>
-          Portal de Publicações Online
+          Portal Oficial de Publicações
         </motion.div>
 
         <motion.h1 
-          className="text-5xl md:text-7xl font-bold tracking-tight text-slate-900 mb-6 max-w-4xl leading-tight"
-          {...fadeIn}
+          className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 mb-6 max-w-4xl leading-tight"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         >
           Descubra os trabalhos do <br className="hidden md:block"/>
-          <span className="text-gradient">PET Saúde</span>
+          <span className="text-gradient drop-shadow-sm">PET Saúde</span>
         </motion.h1>
 
         <motion.p 
-          className="text-lg text-slate-600 mb-10 max-w-2xl"
+          className="text-lg md:text-xl text-slate-600 mb-10 max-w-2xl font-medium leading-relaxed"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
+          transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
         >
-          Nossa vitrine oficial de ações comunitárias, cartilhas educativas e artigos científicos desenvolvidos no Vale do São Francisco.
+          A vitrine digital de ações comunitárias, cartilhas educativas e artigos científicos desenvolvidos no Vale do São Francisco.
         </motion.p>
 
         <motion.div 
-          className="flex flex-col sm:flex-row gap-4"
+          className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
         >
-          <Link href="/publicacoes" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--color-brand-blue-dark)] text-white rounded-full font-medium hover:bg-slate-800 transition-all hover:shadow-[0_0_20px_rgba(28,58,90,0.3)] hover:-translate-y-1">
-            Explorar o Acervo
-            <ArrowRight size={18} />
+          <Link href="/publicacoes" className="group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-[var(--color-brand-blue-dark)] to-[var(--color-brand-blue-light)] text-white rounded-full font-semibold text-lg overflow-hidden transition-all hover:shadow-[0_0_40px_rgba(74,144,226,0.4)] active:scale-95 w-full sm:w-auto">
+            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out" />
+            <span className="relative z-10 flex items-center gap-2">
+              Explorar o Acervo
+              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+            </span>
           </Link>
         </motion.div>
       </section>
@@ -144,40 +152,40 @@ export default function Home() {
             {recentPosts.map((post, index) => (
               <motion.div 
                 key={post.id}
-                className="group bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 flex flex-col"
+                className="group bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-500 hover:-translate-y-2 flex flex-col"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.1, duration: 0.6, ease: "easeOut" }}
               >
-                <Link href={`/publicacoes/${post.id}`} className="block relative h-48 w-full overflow-hidden bg-slate-100">
+                <Link href={`/publicacoes/${post.id}`} className="block relative h-56 w-full overflow-hidden bg-slate-100">
                   <div 
-                    className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500" 
+                    className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700 ease-in-out" 
                     style={{ backgroundImage: `url(${(post.imagem_capa ? getMediaUrl(post.imagem_capa) : null) || getDefaultImage(post.categoria)})` }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                  <div className="absolute bottom-4 left-4">
-                    <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-[var(--color-brand-blue-dark)] text-xs font-bold rounded-full">
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute bottom-4 left-5">
+                    <span className="px-4 py-1.5 bg-white/90 backdrop-blur-md text-[var(--color-brand-blue-dark)] text-xs font-bold rounded-full shadow-sm">
                       {post.categoria}
                     </span>
                   </div>
                 </Link>
-                <div className="p-6 flex flex-col flex-grow">
-                  <div className="flex items-center gap-2 text-slate-400 text-sm mb-3">
-                    <Calendar size={14} />
+                <div className="p-8 flex flex-col flex-grow relative bg-white">
+                  <div className="flex items-center gap-2 text-slate-400 text-sm mb-4 font-medium">
+                    <Calendar size={15} />
                     <span>{formatDate(post.data_publicacao)}</span>
                   </div>
                   <Link href={`/publicacoes/${post.id}`}>
-                    <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-[var(--color-brand-blue-light)] transition-colors line-clamp-2">
+                    <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-[var(--color-brand-blue-light)] transition-colors line-clamp-2 leading-tight">
                       {post.titulo}
                     </h3>
                   </Link>
-                  <p className="text-slate-600 text-sm line-clamp-3 mb-6 flex-grow whitespace-pre-wrap">
+                  <p className="text-slate-500 text-sm line-clamp-3 mb-8 flex-grow leading-relaxed">
                     {post.texto.length > 150 ? post.texto.substring(0, 150) + "..." : post.texto}
                   </p>
-                  <div className="mt-auto">
-                    <Link href={`/publicacoes/${post.id}`} className="text-[var(--color-brand-blue-dark)] font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
-                      Ler mais <ArrowRight size={14} />
+                  <div className="mt-auto pt-4 border-t border-slate-50">
+                    <Link href={`/publicacoes/${post.id}`} className="text-[var(--color-brand-blue-dark)] font-semibold text-sm flex items-center gap-1 group-hover:gap-3 transition-all duration-300">
+                      Ler artigo completo <ArrowRight size={16} />
                     </Link>
                   </div>
                 </div>
@@ -189,29 +197,30 @@ export default function Home() {
 
       {/* Tipos de Conteúdo (Bento Grid) */}
       <section className="w-full max-w-6xl mx-auto px-6 pb-32 scroll-mt-32" id="sobre">
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-slate-900 mb-2">O que você encontra aqui?</h2>
-          <p className="text-slate-600">Nossa plataforma organiza e centraliza todo o conhecimento gerado.</p>
+        <div className="mb-12 text-center md:text-left">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">O que você encontra aqui?</h2>
+          <p className="text-lg text-slate-600 font-medium">Nossa plataforma organiza e centraliza todo o conhecimento gerado.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1 */}
           <motion.div 
-            className="md:col-span-2 glass-card p-8 flex flex-col justify-between group overflow-hidden relative"
-            whileHover={{ y: -5 }}
+            className="md:col-span-2 glass-card p-10 flex flex-col justify-between group overflow-hidden relative border-t border-l border-white/80 cursor-default"
+            whileHover={{ y: -6, scale: 1.01 }}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
           >
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-              <HeartPulse size={120} className="text-[var(--color-brand-blue-light)] transform rotate-12" />
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-all duration-700 group-hover:scale-110 group-hover:rotate-6">
+              <HeartPulse size={160} className="text-[var(--color-brand-blue-light)] transform -rotate-12" />
             </div>
-            <div className="h-12 w-12 rounded-xl bg-blue-50 flex items-center justify-center text-[var(--color-brand-blue-light)] mb-8">
-              <Megaphone size={24} />
+            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 shadow-inner flex items-center justify-center text-[var(--color-brand-blue-light)] mb-10 group-hover:scale-110 transition-transform duration-500">
+              <Megaphone size={28} />
             </div>
-            <div>
-              <h3 className="text-2xl font-bold text-[var(--color-brand-blue-dark)] mb-3">Ações Comunitárias</h3>
-              <p className="text-slate-600 max-w-md">
+            <div className="relative z-10">
+              <h3 className="text-3xl font-extrabold text-[var(--color-brand-blue-dark)] mb-4 tracking-tight">Ações Comunitárias</h3>
+              <p className="text-slate-600 max-w-lg text-lg leading-relaxed font-medium">
                 Acompanhe o cronograma, fotos e resultados das nossas intervenções diretas nos bairros e na zona rural de Afrânio, levando saúde digital na prática.
               </p>
             </div>
@@ -219,19 +228,22 @@ export default function Home() {
 
           {/* Card 2 */}
           <motion.div 
-            className="glass-card p-8 flex flex-col justify-between group bg-gradient-to-br from-[var(--color-brand-green)] to-emerald-800 text-white"
-            whileHover={{ y: -5 }}
+            className="glass-card p-10 flex flex-col justify-between group bg-gradient-to-br from-[var(--color-brand-green)] to-[#007b39] text-white overflow-hidden relative shadow-[0_10px_40px_rgba(0,158,73,0.2)] border-t border-l border-white/20 cursor-default"
+            whileHover={{ y: -6, scale: 1.02 }}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
+            transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 20 }}
           >
-            <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center text-white mb-8">
-              <BookOpen size={24} />
+            <div className="absolute -bottom-10 -right-10 opacity-10 group-hover:opacity-20 transition-all duration-700 group-hover:scale-110">
+              <BookOpen size={180} />
             </div>
-            <div>
-              <h3 className="text-xl font-bold mb-3">Cartilhas Educativas</h3>
-              <p className="text-emerald-50 text-sm">
+            <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-md shadow-inner flex items-center justify-center text-white mb-10 group-hover:scale-110 transition-transform duration-500">
+              <BookOpen size={28} />
+            </div>
+            <div className="relative z-10">
+              <h3 className="text-2xl font-extrabold mb-4 tracking-tight">Cartilhas Educativas</h3>
+              <p className="text-emerald-50 text-base font-medium leading-relaxed">
                 Materiais didáticos ilustrados, prontos para download, focados em conscientização.
               </p>
             </div>
@@ -239,19 +251,19 @@ export default function Home() {
 
           {/* Card 3 */}
           <motion.div 
-            className="glass-card p-8 flex flex-col justify-between group"
-            whileHover={{ y: -5 }}
+            className="glass-card p-10 flex flex-col justify-between group overflow-hidden relative border-t border-l border-white/80 cursor-default"
+            whileHover={{ y: -6, scale: 1.02 }}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 20 }}
           >
-            <div className="h-12 w-12 rounded-xl bg-orange-50 flex items-center justify-center text-[var(--color-brand-orange)] mb-8">
-              <FileText size={24} />
+            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100 shadow-inner flex items-center justify-center text-[var(--color-brand-orange)] mb-10 group-hover:scale-110 transition-transform duration-500">
+              <FileText size={28} />
             </div>
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Produção Científica</h3>
-              <p className="text-slate-600 text-sm">
+            <div className="relative z-10">
+              <h3 className="text-2xl font-extrabold text-slate-900 mb-4 tracking-tight">Produção Científica</h3>
+              <p className="text-slate-600 text-base font-medium leading-relaxed">
                 Artigos, resumos e pesquisas desenvolvidas pelos monitores e preceptores do projeto.
               </p>
             </div>

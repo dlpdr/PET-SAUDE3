@@ -278,9 +278,11 @@ export default function PublicacaoDetalhe() {
         
         <div className="flex-1">
           <motion.div 
-            className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap
-                       [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:text-slate-900 [&>h2]:mt-10 [&>h2]:mb-4
-                       [&>blockquote]:border-l-4 [&>blockquote]:border-[var(--color-brand-orange)] [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:text-slate-500 [&>blockquote]:my-8"
+            className="text-slate-800 text-lg md:text-xl leading-loose font-serif whitespace-pre-wrap
+                       [&>h2]:text-3xl [&>h2]:font-bold [&>h2]:text-slate-900 [&>h2]:mt-12 [&>h2]:mb-6 [&>h2]:font-sans [&>h2]:tracking-tight
+                       [&>h3]:text-2xl [&>h3]:font-bold [&>h3]:text-slate-900 [&>h3]:mt-10 [&>h3]:mb-4 [&>h3]:font-sans
+                       [&>p]:mb-6
+                       [&>blockquote]:border-l-4 [&>blockquote]:border-[var(--color-brand-blue-light)] [&>blockquote]:pl-6 [&>blockquote]:italic [&>blockquote]:text-slate-600 [&>blockquote]:my-8 [&>blockquote]:bg-slate-50 [&>blockquote]:py-4 [&>blockquote]:pr-4 [&>blockquote]:rounded-r-xl"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -293,9 +295,11 @@ export default function PublicacaoDetalhe() {
               {post.imagens.slice(1).map((imagem) => {
                 const src = getMediaUrl(imagem.imagem);
                 return src ? (
-                  <figure key={imagem.id} className="overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
-                    <Image unoptimized width={800} height={600} src={src} alt={imagem.descricao_acessivel || post.titulo} className="h-64 w-full object-cover" />
-                    {imagem.descricao_acessivel && <figcaption className="px-4 py-3 text-sm text-slate-600">{imagem.descricao_acessivel}</figcaption>}
+                  <figure key={imagem.id} className="group overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1">
+                    <div className="overflow-hidden">
+                      <Image unoptimized width={800} height={600} src={src} alt={imagem.descricao_acessivel || post.titulo} className="h-64 w-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    </div>
+                    {imagem.descricao_acessivel && <figcaption className="px-5 py-4 text-sm text-slate-600 bg-white font-sans">{imagem.descricao_acessivel}</figcaption>}
                   </figure>
                 ) : null;
               })}
