@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import api, { getApiErrorMessage } from "@/lib/api";
+import Cookies from "js-cookie";
 
 export default function NovaPublicacao() {
   const router = useRouter();
@@ -51,7 +52,7 @@ export default function NovaPublicacao() {
       setFeedback({ type: 'success', message: "Publicação salva com sucesso! Redirecionando..." });
       
       setTimeout(() => {
-        const role = document.cookie.includes('user_role=admin') ? 'admin' : 'monitor';
+        const role = Cookies.get('user_role') === 'admin' ? 'admin' : 'monitor';
         router.push(`/dashboard/${role}`);
       }, 1500);
 
@@ -66,7 +67,7 @@ export default function NovaPublicacao() {
     }
   };
 
-  const isAdmin = typeof document !== 'undefined' && document.cookie.includes('user_role=admin');
+  const isAdmin = typeof document !== 'undefined' && Cookies.get('user_role') === 'admin';
 
   return (
     <div className="flex flex-col gap-6 pb-12">

@@ -15,8 +15,12 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const isAdmin = pathname.includes("/dashboard/admin");
-  const { isLoading: isCheckingAuth } = useRequireAuth(isAdmin ? "admin" : ["monitor", "admin"]);
+  
+  // Protect routes based on pathname, but use actual user role for the UI
+  const requiresAdminRoute = pathname.includes("/dashboard/admin");
+  const { user, isLoading: isCheckingAuth } = useRequireAuth(requiresAdminRoute ? "admin" : ["monitor", "admin"]);
+
+  const isAdmin = user?.role === "admin";
 
   const handleLogout = () => {
     Cookies.remove("access_token");
