@@ -75,10 +75,6 @@ export default function LoginPage() {
         </div>
 
         <h1 className="text-2xl font-bold text-slate-900 mb-2">Bem-vindo de volta</h1>
-        <div className="mb-4 flex flex-wrap justify-center gap-4 text-sm text-blue-700 underline">
-          <Link href="/recuperar-senha">Esqueci minha senha</Link>
-          <Link href="/reenviar-confirmacao">Reenviar confirmação de e-mail</Link>
-        </div>
         <p className="text-slate-500 text-sm mb-8 text-center">Entre na sua conta para acessar o acervo e interagir com as publicações.</p>
 
         {errorMsg && (
@@ -118,10 +114,13 @@ export default function LoginPage() {
             />
           </div>
 
-          <div className="flex items-center justify-end mb-2">
-            <a href="#" className="text-xs font-semibold text-slate-500 hover:text-[var(--color-brand-blue-light)] transition-colors">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4 w-full">
+            <Link href="/reenviar-confirmacao" className="text-xs font-semibold text-slate-500 hover:text-[var(--color-brand-blue-light)] transition-colors hover:underline">
+              Reenviar ativação
+            </Link>
+            <Link href="/recuperar-senha" className="text-xs font-semibold text-[var(--color-brand-blue-dark)] hover:text-[var(--color-brand-blue-light)] transition-colors hover:underline">
               Esqueceu a senha?
-            </a>
+            </Link>
           </div>
 
           <button 
