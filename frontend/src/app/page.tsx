@@ -9,12 +9,6 @@ import api, { getMediaUrl } from "@/lib/api";
 import type { PublicationSummary, PaginatedResponse } from "@/lib/types";
 
 export default function Home() {
-  const fadeIn = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6 }
-  };
-
   const [recentPosts, setRecentPosts] = useState<PublicationSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');

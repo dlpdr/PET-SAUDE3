@@ -111,15 +111,19 @@ export function getMediaUrl(relativeUrl: string | null | undefined): string | nu
   try {
     // If it's already a relative path starting with /media/, return as-is
     if (relativeUrl.startsWith('/media/')) return relativeUrl;
-    // If it's a relative path like "publications/covers/file.jpg" (no leading slash)
-    if (!relativeUrl.startsWith('http')) return `/media/${relativeUrl}`;
-    // Parse absolute URL
-    const url = new URL(relativeUrl);
-    // Backend URLs (http or https): extract the path so we proxy through Next.js
-    if (url.pathname.startsWith('/media/')) return `${url.pathname}${url.search}`;
-    // External HTTPS URLs (e.g. Unsplash CDN)
-    if (url.protocol === 'https:') return url.href;
-    return null;
+
+    // If it has a scheme (http:, https:, javascript:, etc.)
+    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(relativeUrl)) {
+      const url = new URL(relativeUrl);
+      // Backend URLs (http or https): extract the path so we proxy through Next.js
+      if (url.pathname.startsWith('/media/')) return `${url.pathname}${url.search}`;
+      // External HTTPS URLs (e.g. Unsplash CDN, Cloudinary)
+      if (url.protocol === 'https:') return url.href;
+      return null;
+    }
+
+    // Relative path like "publications/covers/file.jpg"
+    return `/media/${relativeUrl.replace(/^\/+/, '')}`;
   } catch {
     return null;
   }

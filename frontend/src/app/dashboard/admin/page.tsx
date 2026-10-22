@@ -133,7 +133,7 @@ export default function AdminDashboard() {
           <form onSubmit={event => { event.preventDefault(); void handleReject(rejectingId); }} className="w-full max-w-lg rounded-2xl bg-white p-6 md:p-8 shadow-xl">
             <h3 className="text-xl font-bold text-slate-800 mb-2">Rejeitar Publicação</h3>
             <p className="text-sm text-slate-500 mb-4">
-              Por que a publicação <strong>"{pendingPosts.find(post => post.id === rejectingId)?.titulo}"</strong> não pode ser aprovada? O autor receberá este feedback.
+              Por que a publicação <strong>&ldquo;{pendingPosts.find(post => post.id === rejectingId)?.titulo}&rdquo;</strong> não pode ser aprovada? O autor receberá este feedback.
             </p>
             <textarea id="rejection-reason" required value={rejectionReason} onChange={event => setRejectionReason(event.target.value)} placeholder="Descreva o motivo (ex: Precisa revisar a ortografia...)" className="mb-6 w-full rounded-xl border border-slate-200 bg-slate-50 p-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-red-500" />
             <div className="flex flex-col sm:flex-row justify-end gap-3">
@@ -152,7 +152,7 @@ export default function AdminDashboard() {
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 text-green-600"><CheckSquare size={32} /></div>
             <h3 className="text-xl font-bold text-slate-800 mb-2">Aprovar Publicação</h3>
             <p className="text-sm text-slate-500 mb-8">
-              Tem certeza que deseja aprovar e publicar <strong>"{pendingPosts.find(post => post.id === approvingId)?.titulo}"</strong>? O conteúdo ficará visível publicamente no acervo.
+              Tem certeza que deseja aprovar e publicar <strong>&ldquo;{pendingPosts.find(post => post.id === approvingId)?.titulo}&rdquo;</strong>? O conteúdo ficará visível publicamente no acervo.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-3">
               <button type="button" disabled={actionLoading !== null} onClick={() => setApprovingId(null)} className="rounded-xl border border-slate-200 px-6 py-2.5 text-slate-600 font-medium hover:bg-slate-50">Cancelar</button>
@@ -169,7 +169,7 @@ export default function AdminDashboard() {
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 md:p-8 shadow-xl">
             <h3 className="text-xl font-bold text-slate-800 mb-2">Tirar do Ar</h3>
             <p className="text-sm text-slate-500 mb-4">
-              Por que <strong>"{publishedPosts.find(post => post.id === takedownId)?.titulo}"</strong> precisa ser removido? O autor será notificado e a publicação voltará para a aba de Rejeitados do monitor.
+              Por que <strong>&ldquo;{publishedPosts.find(post => post.id === takedownId)?.titulo}&rdquo;</strong> precisa ser removido? O autor será notificado e a publicação voltará para a aba de Rejeitados do monitor.
             </p>
             <textarea required value={takedownReason} onChange={event => setTakedownReason(event.target.value)} placeholder="Informe o motivo da remoção..." className="mb-6 w-full rounded-xl border border-slate-200 bg-slate-50 p-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-orange-500" />
             <div className="flex flex-col sm:flex-row justify-end gap-3">

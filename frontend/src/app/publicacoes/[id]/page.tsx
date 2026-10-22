@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, User, Share2, Download, Tag, Heart, MessageCircle, Send, Loader2, AlertCircle, ChevronLeft, ChevronRight, Image as ImageLucide } from "lucide-react";
+import { ArrowLeft, Calendar, User, Share2, Download, Tag, Heart, MessageCircle, Send, Loader2, AlertCircle, Image as ImageLucide } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -32,7 +32,6 @@ export default function PublicacaoDetalhe() {
   const [shareFeedback, setShareFeedback] = useState("");
 
   const [comentarios, setComentarios] = useState<PublicationComment[]>([]);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     const fetchPost = async () => {

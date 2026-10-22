@@ -60,11 +60,11 @@ export default function NovaPublicacao() {
         router.push(`/dashboard/${role}`);
       }, 1500);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       setFeedback({ 
         type: 'error', 
-        message: error.response?.data ? JSON.stringify(error.response.data) : error.message
+        message: getApiErrorMessage(error, "Erro ao salvar publicação.")
       });
     } finally {
       setIsSubmitting(false);

@@ -6,6 +6,7 @@ Configurações sensíveis são carregadas do arquivo .env (nunca commitado no G
 import os
 from pathlib import Path
 from datetime import timedelta
+import dj_database_url
 from dotenv import load_dotenv
 
 # Carrega o arquivo .env localizado na raiz do backend/
@@ -15,7 +16,14 @@ load_dotenv(BASE_DIR / '.env')
 # ─── SEGURANÇA ───────────────────────────────────────────────
 SECRET_KEY = os.environ.get('SECRET_KEY', 'chave-insegura-apenas-para-dev')
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+allowed_hosts_raw = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,.onrender.com')
+ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_raw.split(',') if h.strip()]
+
+# Suporte automático ao hostname externo fornecido pelo Render
+render_external_hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if render_external_hostname and render_external_hostname not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(render_external_hostname)
 
 # ─── APLICAÇÕES ──────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -24,7 +32,10 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
+    'cloudinary_storage',
+    'cloudinary',
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
@@ -35,6 +46,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -65,16 +77,26 @@ TEMPLATES = [
 WSGI_APPLICATION = 'pet_saude_backend.wsgi.application'
 
 # ─── BANCO DE DADOS ───────────────────────────────────────────
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'pet_saude'),
-        'USER': os.environ.get('DB_USER', 'pet_saude'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME', 'pet_saude'),
+            'USER': os.environ.get('DB_USER', 'pet_saude'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        }
+    }
 
 # ─── SENHAS ───────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
@@ -97,6 +119,27 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Configuração Cloudinary para persistência de uploads (fotos de publicações)
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
+}
+
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"
+        if os.environ.get('CLOUDINARY_CLOUD_NAME')
+        else "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+if os.environ.get('CLOUDINARY_CLOUD_NAME'):
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 # ─── AUTENTICAÇÃO ─────────────────────────────────────────────
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -118,7 +161,10 @@ SIMPLE_JWT = {
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
-    cors_origins_raw = os.environ.get('CORS_ALLOWED_ORIGINS', 'https://pet-saude-3.vercel.app')
+    cors_origins_raw = os.environ.get(
+        'CORS_ALLOWED_ORIGINS',
+        'https://pet-saude-3.vercel.app,https://pet-saude.vercel.app'
+    )
     CORS_ALLOWED_ORIGINS = [o.strip() for o in cors_origins_raw.split(',') if o.strip()]
 
 # ─── E-MAIL ───────────────────────────────────────────────────
@@ -135,15 +181,17 @@ if os.environ.get('EMAIL_HOST'):
 else:
     # Sem configuração de e-mail: apenas imprime no console (desenvolvimento)
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'PET Saúde <noreply@localhost>')
 
-# ─── GOOGLE OAUTH ─────────────────────────────────────────────
+# ─── GOOGLE OAUTH E REDIRECIONAMENTOS ─────────────────────────
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000').rstrip('/')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'PET Saúde <noreply@localhost>')
+
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SECURE_CONTENT_TYPE_NOSNIFF = True
-# Enable after configuring HTTPS at the trusted reverse proxy.
+
+# Render e proxies reversos modernos tratam TLS externamente e repassam cabeçalhos
 SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
-if os.environ.get('TRUST_PROXY_HTTPS', 'False').lower() == 'true':
+if os.environ.get('TRUST_PROXY_HTTPS', 'False').lower() == 'true' or os.environ.get('RENDER'):
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
