@@ -165,7 +165,7 @@ else:
         'CORS_ALLOWED_ORIGINS',
         'https://pet-saude-3.vercel.app,https://pet-saude.vercel.app'
     )
-    CORS_ALLOWED_ORIGINS = [o.strip() for o in cors_origins_raw.split(',') if o.strip()]
+    CORS_ALLOWED_ORIGINS = [o.strip().rstrip('/') for o in cors_origins_raw.split(',') if o.strip()]
 
 # ─── E-MAIL ───────────────────────────────────────────────────
 if os.environ.get('EMAIL_HOST'):
