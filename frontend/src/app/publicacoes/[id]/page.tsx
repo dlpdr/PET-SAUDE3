@@ -199,7 +199,7 @@ export default function PublicacaoDetalhe() {
     );
   }
 
-  const capaUrl = (post.imagem_capa ? getMediaUrl(post.imagem_capa) : null) || getDefaultImage(post.categoria);
+  const capaUrl = (post.imagem_capa ? getMediaUrl(post.imagem_capa) : null) || (post.imagens?.[0]?.imagem ? getMediaUrl(post.imagens[0].imagem) : null) || getDefaultImage(post.categoria);
   const autorNome = post.autor ? `${post.autor.first_name} ${post.autor.last_name}` : "Autor desconhecido";
   const imagensGaleria = post.imagens || [];
 

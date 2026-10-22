@@ -124,7 +124,7 @@ export default function AcervoPage() {
                 <Link href={`/publicacoes/${post.id}`} className="block relative h-56 w-full overflow-hidden bg-slate-100">
                   <div 
                     className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700 ease-in-out" 
-                    style={{ backgroundImage: `url(${(post.imagem_capa ? getMediaUrl(post.imagem_capa) : null) || getDefaultImage(post.categoria)})` }}
+                    style={{ backgroundImage: `url(${(post.imagem_capa ? getMediaUrl(post.imagem_capa) : null) || (post.imagens?.[0]?.imagem ? getMediaUrl(post.imagens[0].imagem) : null) || getDefaultImage(post.categoria)})` }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="absolute bottom-4 left-5">

@@ -4,3 +4,4 @@ set -o errexit
 
 cd backend
 ./build.sh
+
